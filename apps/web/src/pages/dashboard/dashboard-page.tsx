@@ -5,64 +5,68 @@ import {
   Badge,
   Box,
   Button,
-  Card,
   Container,
   Group,
   Loader,
-  SimpleGrid,
   Stack,
   Text,
-  ThemeIcon,
   Title,
 } from '@mantine/core';
 import {
   IconBell,
   IconCalendarDue,
-  IconCreditCard,
+  IconChevronRight,
   IconPlus,
   IconReceipt,
   IconWallet,
 } from '@tabler/icons-react';
 import classes from './dashboard-page.module.css';
 
-const summary = [
-  { label: 'В этом месяце', value: '—', icon: IconWallet },
-  { label: 'Ближайшее списание', value: '—', icon: IconCalendarDue },
-  { label: 'Активные подписки', value: '0', icon: IconReceipt },
-];
+const currentPeriod = new Intl.DateTimeFormat('ru-RU', {
+  month: 'long',
+  year: 'numeric',
+}).format(new Date());
 
 export function DashboardPage() {
   const { data, error, isLoading } = useGetHealth();
 
   return (
-    <AppShell header={{ height: 72 }} padding="md">
+    <AppShell header={{ height: { base: 68, sm: 76 } }} padding={0}>
       <AppShell.Header className={classes.header}>
         <Container size="lg" h="100%">
           <Group h="100%" justify="space-between">
-            <Group gap="sm">
-              <ThemeIcon size={38} radius="md" variant="gradient">
-                <IconCreditCard size={22} />
-              </ThemeIcon>
+            <Group gap={12} wrap="nowrap">
+              <Box className={classes.brandMark}>
+                <IconReceipt size={20} stroke={2.2} />
+              </Box>
               <Box>
-                <Text fw={700} lh={1.1}>
-                  Subscription Manager
-                </Text>
-                <Text size="xs" c="dimmed">
-                  Контроль регулярных расходов
-                </Text>
+                <Text className={classes.brandName}>Subtrack</Text>
+                <Text className={classes.brandCaption}>регулярные платежи</Text>
               </Box>
             </Group>
 
-            <Group gap="sm">
-              <Badge
-                color={error ? 'red' : data ? 'teal' : 'gray'}
-                leftSection={isLoading ? <Loader size={8} /> : undefined}
-                variant="light"
+            <Group gap={10} wrap="nowrap">
+              <Box
+                className={classes.systemStatus}
+                data-state={error ? 'error' : data ? 'online' : 'loading'}
               >
-                {error ? 'API недоступен' : data ? 'Система работает' : 'Проверка API'}
-              </Badge>
-              <ActionIcon aria-label="Уведомления" size="lg" variant="subtle">
-                <IconBell size={20} />
+                {isLoading ? (
+                  <Loader color="gray" size={10} />
+                ) : (
+                  <span className={classes.statusDot} />
+                )}
+                <Text component="span">
+                  {error ? 'API offline' : data ? 'Все системы в норме' : 'Подключение'}
+                </Text>
+              </Box>
+              <ActionIcon
+                aria-label="Уведомления"
+                className={classes.iconButton}
+                radius="xl"
+                size={42}
+                variant="transparent"
+              >
+                <IconBell size={19} stroke={1.8} />
               </ActionIcon>
             </Group>
           </Group>
@@ -70,53 +74,102 @@ export function DashboardPage() {
       </AppShell.Header>
 
       <AppShell.Main className={classes.main}>
-        <Container size="lg" py={{ base: 'md', sm: 'xl' }}>
-          <Stack gap="xl">
-            <Group align="end" justify="space-between">
+        <Box aria-hidden className={classes.ambient} />
+        <Container className={classes.content} size="lg">
+          <Stack gap={0}>
+            <Group className={classes.pageHeading} justify="space-between">
               <Box>
-                <Text c="dimmed" fw={600} size="sm">
-                  ОБЗОР
+                <Text className={classes.eyebrow}>
+                  <span /> Обзор · {currentPeriod}
                 </Text>
-                <Title order={1}>Регулярные платежи</Title>
+                <Title className={classes.title} order={1}>
+                  Твои подписки
+                </Title>
+                <Text className={classes.subtitle}>
+                  Всё, что списывается регулярно — в одном месте.
+                </Text>
               </Box>
-              <Button leftSection={<IconPlus size={18} />}>Добавить подписку</Button>
+              <Button
+                className={classes.addButton}
+                leftSection={<IconPlus size={18} stroke={2.4} />}
+                radius="xl"
+                size="md"
+              >
+                Добавить подписку
+              </Button>
             </Group>
 
-            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-              {summary.map(({ icon: Icon, label, value }) => (
-                <Card className={classes.summaryCard} key={label} padding="lg" radius="lg">
-                  <Group justify="space-between" wrap="nowrap">
-                    <Box>
-                      <Text c="dimmed" size="sm">
-                        {label}
-                      </Text>
-                      <Text fw={700} mt={6} size="xl">
-                        {value}
-                      </Text>
-                    </Box>
-                    <ThemeIcon color="accent" radius="xl" size={42} variant="light">
-                      <Icon size={21} />
-                    </ThemeIcon>
-                  </Group>
-                </Card>
-              ))}
-            </SimpleGrid>
+            <Box className={classes.metrics}>
+              <Box className={classes.primaryMetric}>
+                <Group align="flex-start" justify="space-between" wrap="nowrap">
+                  <Box>
+                    <Text className={classes.metricLabel}>Расходы в этом месяце</Text>
+                    <Text className={classes.primaryValue}>0 ₽</Text>
+                  </Box>
+                  <Box className={classes.metricIcon}>
+                    <IconWallet size={20} stroke={1.8} />
+                  </Box>
+                </Group>
+                <Group className={classes.metricFooter} gap={8}>
+                  <span />
+                  <Text>Нет запланированных списаний</Text>
+                </Group>
+              </Box>
 
-            <Card className={classes.emptyCard} padding="xl" radius="lg">
-              <Stack align="center" gap="sm" py="xl" ta="center">
-                <ThemeIcon color="gray" radius="xl" size={56} variant="light">
-                  <IconReceipt size={28} />
-                </ThemeIcon>
-                <Title order={3}>Подписок пока нет</Title>
-                <Text c="dimmed" maw={430}>
-                  Добавьте первый регулярный платёж — здесь появятся ближайшие списания и общая
-                  сумма расходов.
-                </Text>
-                <Button leftSection={<IconPlus size={18} />} mt="sm" variant="light">
-                  Добавить первую подписку
+              <Box className={classes.metricCard}>
+                <Box className={classes.metricIcon}>
+                  <IconCalendarDue size={20} stroke={1.8} />
+                </Box>
+                <Text className={classes.metricLabel}>Следующее</Text>
+                <Text className={classes.metricValue}>—</Text>
+                <Text className={classes.metricHint}>пока ничего</Text>
+              </Box>
+
+              <Box className={classes.metricCard}>
+                <Box className={classes.metricIcon}>
+                  <IconReceipt size={20} stroke={1.8} />
+                </Box>
+                <Text className={classes.metricLabel}>Активные</Text>
+                <Text className={classes.metricValue}>0</Text>
+                <Text className={classes.metricHint}>подписок</Text>
+              </Box>
+            </Box>
+
+            <Box className={classes.subscriptionsPanel}>
+              <Group className={classes.panelHeader} justify="space-between">
+                <Group gap={10}>
+                  <Title order={2}>Мои подписки</Title>
+                  <Badge className={classes.counter} radius="xl" variant="transparent">
+                    0
+                  </Badge>
+                </Group>
+                <Button
+                  className={classes.textButton}
+                  rightSection={<IconChevronRight size={16} />}
+                  variant="subtle"
+                >
+                  Все платежи
                 </Button>
-              </Stack>
-            </Card>
+              </Group>
+
+              <Box className={classes.emptyState}>
+                <Box className={classes.emptyIcon}>
+                  <IconReceipt size={27} stroke={1.6} />
+                </Box>
+                <Title order={3}>Здесь появится твоя первая подписка</Title>
+                <Text>
+                  Добавь сервис, дату и сумму. Мы соберём календарь списаний и напомним заранее.
+                </Text>
+                <Button
+                  className={classes.emptyButton}
+                  leftSection={<IconPlus size={17} />}
+                  radius="xl"
+                  variant="default"
+                >
+                  Добавить первую
+                </Button>
+              </Box>
+            </Box>
           </Stack>
         </Container>
       </AppShell.Main>

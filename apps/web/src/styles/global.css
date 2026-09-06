@@ -1,16 +1,32 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
+  --app-bg: #07090d;
+  --app-surface: #0d1016;
+  --app-surface-raised: #12161f;
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-border-strong: rgba(255, 255, 255, 0.14);
+  --app-text: #f4f6f1;
+  --app-text-muted: #8d948b;
+  --app-signal: #73ff5b;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
 html {
   min-width: 320px;
-  background: var(--mantine-color-body);
+  background: var(--app-bg);
 }
 
 body {
   margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  color: #071006;
+  background: var(--app-signal);
 }
 
 button,
