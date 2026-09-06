@@ -22,6 +22,61 @@
           "Health"
         ]
       }
+    },
+    "/api/subscriptions": {
+      "get": {
+        "operationId": "getSubscriptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get current user subscriptions",
+        "tags": [
+          "Subscriptions"
+        ]
+      },
+      "post": {
+        "operationId": "createSubscription",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubscriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
     }
   },
   "info": {
@@ -61,6 +116,162 @@
           "status",
           "database",
           "timestamp"
+        ]
+      },
+      "SubscriptionPaymentMethodDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Основная карта"
+          },
+          "lastFour": {
+            "type": "string",
+            "example": "4242",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "SubscriptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "YouTube Premium"
+          },
+          "category": {
+            "type": "string",
+            "example": "Развлечения",
+            "nullable": true
+          },
+          "amount": {
+            "type": "string",
+            "example": "799.00",
+            "pattern": "^\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "RUB",
+              "USD",
+              "EUR"
+            ],
+            "example": "RUB"
+          },
+          "billingPeriod": {
+            "type": "string",
+            "enum": [
+              "WEEK",
+              "MONTH",
+              "QUARTER",
+              "YEAR",
+              "CUSTOM"
+            ]
+          },
+          "nextChargeDate": {
+            "type": "string",
+            "example": "2026-09-15",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PAUSED",
+              "CANCELLED",
+              "ARCHIVED"
+            ]
+          },
+          "paymentMethod": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SubscriptionPaymentMethodDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-06T12:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "amount",
+          "currency",
+          "billingPeriod",
+          "nextChargeDate",
+          "status",
+          "createdAt"
+        ]
+      },
+      "CreateSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "YouTube Premium",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "amount": {
+            "type": "number",
+            "example": 799,
+            "minimum": 0.01,
+            "multipleOf": 0.01
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "RUB",
+              "USD",
+              "EUR"
+            ],
+            "example": "RUB"
+          },
+          "billingPeriod": {
+            "type": "string",
+            "enum": [
+              "WEEK",
+              "MONTH",
+              "QUARTER",
+              "YEAR",
+              "CUSTOM"
+            ],
+            "example": "MONTH"
+          },
+          "nextChargeDate": {
+            "type": "string",
+            "example": "2026-09-15",
+            "format": "date"
+          },
+          "category": {
+            "type": "string",
+            "example": "Развлечения",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "name",
+          "amount",
+          "currency",
+          "billingPeriod",
+          "nextChargeDate"
         ]
       }
     }

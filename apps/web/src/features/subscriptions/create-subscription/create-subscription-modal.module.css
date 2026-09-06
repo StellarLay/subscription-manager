@@ -1,0 +1,102 @@
+.overlay {
+  background: rgba(0, 0, 0, 0.76);
+}
+
+.content {
+  overflow: hidden;
+  border: 1px solid var(--app-border-strong);
+  background: #0d1016;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.58);
+}
+
+.header {
+  min-height: 92px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--app-border);
+  background: #0d1016;
+}
+
+.title {
+  color: var(--app-text);
+}
+
+.kicker {
+  margin-bottom: 5px;
+  color: var(--app-signal);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.heading {
+  color: var(--app-text);
+  font-size: 1.18rem;
+  font-weight: 680;
+  letter-spacing: -0.025em;
+}
+
+.body {
+  padding: 24px;
+}
+
+.body :global(.mantine-InputWrapper-label) {
+  margin-bottom: 7px;
+  color: #b7bdb4;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.body :global(.mantine-Input-input) {
+  color: var(--app-text);
+  border-color: var(--app-border);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.body :global(.mantine-Input-input:focus),
+.body :global(.mantine-Input-input:focus-within) {
+  border-color: rgba(115, 255, 91, 0.48);
+  box-shadow: 0 0 0 3px rgba(115, 255, 91, 0.055);
+}
+
+.reminderHint {
+  padding: 13px 15px;
+  color: #7e857c;
+  border: 1px solid var(--app-border);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.022);
+  font-size: 0.77rem;
+  line-height: 1.5;
+}
+
+.actions {
+  padding-top: 6px;
+}
+
+.submitButton {
+  min-width: 124px;
+  color: #071006;
+  font-weight: 750;
+}
+
+@media (max-width: 48em) {
+  .content {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .header {
+    min-height: 88px;
+    padding: 20px 18px 16px;
+  }
+
+  .body {
+    padding: 22px 18px 28px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    padding-top: 10px;
+  }
+}
