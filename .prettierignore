@@ -1,0 +1,8 @@
+node_modules
+.pnpm-store
+dist
+coverage
+apps/server/src/generated
+packages/api-client/src/generated
+packages/api-client/openapi.json
+pnpm-lock.yaml

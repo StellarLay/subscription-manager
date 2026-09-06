@@ -1,0 +1,31 @@
+{
+  "name": "@subscription-manager/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "orval --config orval.config.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "swr": ">=2",
+    "zod": ">=4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "orval": "^8.28.1",
+    "react": "^19.2.8",
+    "swr": "^2.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0",
+    "zod": "^4.5.4"
+  }
+}

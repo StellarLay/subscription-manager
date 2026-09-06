@@ -1,0 +1,182 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum RecurringPaymentStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  ARCHIVED
+}
+
+enum BillingPeriod {
+  WEEK
+  MONTH
+  QUARTER
+  YEAR
+  CUSTOM
+}
+
+enum PaymentMethodType {
+  CARD
+  BANK_ACCOUNT
+  WALLET
+  OTHER
+}
+
+enum NotificationChannel {
+  TELEGRAM
+  EMAIL
+}
+
+enum PaymentOccurrenceStatus {
+  SCHEDULED
+  PAID
+  SKIPPED
+  CANCELLED
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id             String             @id @default(uuid()) @db.Uuid
+  email          String             @unique @db.VarChar(320)
+  passwordHash   String?            @db.VarChar(255)
+  displayName    String?            @db.VarChar(120)
+  timezone       String             @default("Europe/Moscow") @db.VarChar(64)
+  locale         String             @default("ru") @db.VarChar(10)
+  telegramId     BigInt?            @unique
+  status         UserStatus         @default(ACTIVE)
+  sessions       Session[]
+  paymentMethods PaymentMethod[]
+  payments       RecurringPayment[]
+  createdAt      DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime           @updatedAt @db.Timestamptz(3)
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique @db.VarChar(128)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model PaymentMethod {
+  id          String            @id @default(uuid()) @db.Uuid
+  userId      String            @db.Uuid
+  name        String            @db.VarChar(100)
+  type        PaymentMethodType
+  lastFour    String?           @db.VarChar(4)
+  color       String?           @db.VarChar(16)
+  note        String?           @db.VarChar(500)
+  sortOrder   Int               @default(0)
+  archivedAt  DateTime?         @db.Timestamptz(3)
+  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime          @updatedAt @db.Timestamptz(3)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments    RecurringPayment[]
+
+  @@index([userId, archivedAt])
+}
+
+model RecurringPayment {
+  id                String                  @id @default(uuid()) @db.Uuid
+  userId            String                  @db.Uuid
+  paymentMethodId   String?                 @db.Uuid
+  name              String                  @db.VarChar(160)
+  description       String?                 @db.VarChar(500)
+  category          String?                 @db.VarChar(64)
+  amount            Decimal                 @db.Decimal(14, 2)
+  currency          String                  @default("RUB") @db.Char(3)
+  billingPeriod     BillingPeriod
+  interval          Int                     @default(1)
+  nextChargeDate    DateTime                @db.Date
+  trialEndsAt       DateTime?               @db.Date
+  websiteUrl        String?                 @db.VarChar(2048)
+  note              String?                 @db.Text
+  status            RecurringPaymentStatus  @default(ACTIVE)
+  archivedAt        DateTime?               @db.Timestamptz(3)
+  createdAt         DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime                @updatedAt @db.Timestamptz(3)
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethod     PaymentMethod?          @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  reminderRules     ReminderRule[]
+  occurrences       PaymentOccurrence[]
+
+  @@index([userId, status, nextChargeDate])
+  @@index([userId, paymentMethodId])
+}
+
+model ReminderRule {
+  id               String                @id @default(uuid()) @db.Uuid
+  recurringPaymentId String              @db.Uuid
+  channel          NotificationChannel
+  daysBefore       Int                   @default(1)
+  timeOfDayMinutes Int                   @default(600)
+  enabled          Boolean               @default(true)
+  createdAt        DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime              @updatedAt @db.Timestamptz(3)
+  recurringPayment RecurringPayment      @relation(fields: [recurringPaymentId], references: [id], onDelete: Cascade)
+  deliveries       NotificationDelivery[]
+
+  @@unique([recurringPaymentId, channel, daysBefore, timeOfDayMinutes])
+  @@index([enabled, channel])
+}
+
+model PaymentOccurrence {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  recurringPaymentId String                    @db.Uuid
+  scheduledFor       DateTime                  @db.Date
+  amount             Decimal                   @db.Decimal(14, 2)
+  currency           String                    @db.Char(3)
+  status             PaymentOccurrenceStatus   @default(SCHEDULED)
+  paidAt             DateTime?                 @db.Timestamptz(3)
+  createdAt          DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime                  @updatedAt @db.Timestamptz(3)
+  recurringPayment   RecurringPayment          @relation(fields: [recurringPaymentId], references: [id], onDelete: Cascade)
+  deliveries         NotificationDelivery[]
+
+  @@unique([recurringPaymentId, scheduledFor])
+  @@index([status, scheduledFor])
+}
+
+model NotificationDelivery {
+  id              String                     @id @default(uuid()) @db.Uuid
+  reminderRuleId  String                     @db.Uuid
+  occurrenceId    String                     @db.Uuid
+  idempotencyKey  String                     @unique @db.VarChar(180)
+  status          NotificationDeliveryStatus @default(PENDING)
+  scheduledAt     DateTime                   @db.Timestamptz(3)
+  sentAt          DateTime?                  @db.Timestamptz(3)
+  attemptCount    Int                        @default(0)
+  lastError       String?                    @db.Text
+  createdAt       DateTime                   @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime                   @updatedAt @db.Timestamptz(3)
+  reminderRule    ReminderRule               @relation(fields: [reminderRuleId], references: [id], onDelete: Cascade)
+  occurrence      PaymentOccurrence           @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+  @@index([reminderRuleId])
+  @@index([occurrenceId])
+}
