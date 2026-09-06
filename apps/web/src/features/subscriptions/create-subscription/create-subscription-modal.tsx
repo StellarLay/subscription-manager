@@ -63,7 +63,9 @@ export function CreateSubscriptionModal({
   onClose,
   onCreated,
 }: CreateSubscriptionModalProps) {
-  const isMobile = useMediaQuery('(max-width: 48em)');
+  const isMobile = useMediaQuery('(max-width: 48em)', undefined, {
+    getInitialValueInEffect: false,
+  });
   const { trigger, isMutating } = useCreateSubscription();
   const {
     control,
@@ -127,7 +129,7 @@ export function CreateSubscriptionModal({
       fullScreen={isMobile}
       onClose={close}
       opened={opened}
-      overlayProps={{ backgroundOpacity: 0.72, blur: 12 }}
+      overlayProps={{ backgroundOpacity: isMobile ? 1 : 0.78, color: '#07090d' }}
       radius="xl"
       size="lg"
       title={
@@ -180,6 +182,10 @@ export function CreateSubscriptionModal({
               render={({ field, fieldState }) => (
                 <Select
                   allowDeselect={false}
+                  comboboxProps={{
+                    transitionProps: { duration: 0 },
+                    withinPortal: false,
+                  }}
                   data={currencies}
                   error={fieldState.error ? 'Выбери валюту' : undefined}
                   label="Валюта"
@@ -200,6 +206,10 @@ export function CreateSubscriptionModal({
               render={({ field, fieldState }) => (
                 <Select
                   allowDeselect={false}
+                  comboboxProps={{
+                    transitionProps: { duration: 0 },
+                    withinPortal: false,
+                  }}
                   data={billingPeriods}
                   error={fieldState.error ? 'Выбери периодичность' : undefined}
                   label="Периодичность"
@@ -223,6 +233,10 @@ export function CreateSubscriptionModal({
                   minDate={new Date()}
                   onBlur={field.onBlur}
                   onChange={(value) => field.onChange(value ?? '')}
+                  popoverProps={{
+                    transitionProps: { duration: 0 },
+                    withinPortal: false,
+                  }}
                   placeholder="Выбери дату"
                   size="md"
                   value={field.value}

@@ -3,7 +3,7 @@
 }
 
 .content {
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--app-border-strong);
   background: #0d1016;
   box-shadow: 0 32px 100px rgba(0, 0, 0, 0.58);
@@ -81,8 +81,10 @@
 
 @media (max-width: 48em) {
   .content {
+    overflow-y: auto;
     border: 0;
     border-radius: 0;
+    overscroll-behavior: contain;
   }
 
   .header {

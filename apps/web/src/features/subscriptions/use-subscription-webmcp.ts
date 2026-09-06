@@ -50,6 +50,8 @@ export function useSubscriptionWebMcp(onCreated: () => Promise<unknown>): void {
         { signal: lifecycle.signal },
       ),
     ).catch((error: unknown) => {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+
       console.warn('Could not register create_subscription WebMCP tool', error);
     });
 
