@@ -12,6 +12,7 @@ import {
   Container,
   Group,
   Loader,
+  Menu,
   Skeleton,
   Stack,
   Text,
@@ -20,14 +21,17 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconAlertTriangle,
+  IconArchive,
   IconBell,
   IconCalendarDue,
+  IconDotsVertical,
+  IconEdit,
   IconPlus,
   IconReceipt,
   IconRefresh,
   IconWallet,
 } from '@tabler/icons-react';
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
 
@@ -38,6 +42,13 @@ const CreateSubscriptionModal = lazy(async () => {
     await import('@/features/subscriptions/create-subscription/create-subscription-modal');
 
   return { default: module.CreateSubscriptionModal };
+});
+
+const ArchiveSubscriptionModal = lazy(async () => {
+  const module =
+    await import('@/features/subscriptions/archive-subscription/archive-subscription-modal');
+
+  return { default: module.ArchiveSubscriptionModal };
 });
 
 const currentPeriod = new Intl.DateTimeFormat('ru-RU', {
@@ -84,6 +95,13 @@ function sortByChargeDate(subscriptions: SubscriptionResponseDto[]) {
 
 export function DashboardPage() {
   const [createOpened, createModal] = useDisclosure(false);
+  const [editOpened, editModal] = useDisclosure(false);
+  const [archiveOpened, archiveModal] = useDisclosure(false);
+  const [editingSubscription, setEditingSubscription] = useState<SubscriptionResponseDto | null>(
+    null,
+  );
+  const [archivingSubscription, setArchivingSubscription] =
+    useState<SubscriptionResponseDto | null>(null);
   const { data: health, error: healthError, isLoading: healthLoading } = useGetHealth();
   const {
     data: subscriptions = [],
@@ -96,6 +114,27 @@ export function DashboardPage() {
     () => refreshSubscriptions(),
     [refreshSubscriptions],
   );
+  const handleSubscriptionArchived = useCallback(
+    (archivedSubscription: SubscriptionResponseDto) =>
+      refreshSubscriptions(
+        (currentSubscriptions) =>
+          currentSubscriptions?.filter(({ id }) => id !== archivedSubscription.id),
+        { revalidate: true },
+      ),
+    [refreshSubscriptions],
+  );
+  const openCreateModal = () => {
+    setEditingSubscription(null);
+    createModal.open();
+  };
+  const openEditModal = (subscription: SubscriptionResponseDto) => {
+    setEditingSubscription(subscription);
+    editModal.open();
+  };
+  const openArchiveModal = (subscription: SubscriptionResponseDto) => {
+    setArchivingSubscription(subscription);
+    archiveModal.open();
+  };
   useSubscriptionWebMcp(handleSubscriptionCreated);
 
   const hasSubscriptionsError = Boolean(subscriptionsError);
@@ -172,7 +211,7 @@ export function DashboardPage() {
                 <Button
                   className={classes.addButton}
                   leftSection={<IconPlus size={18} stroke={2.4} />}
-                  onClick={createModal.open}
+                  onClick={openCreateModal}
                   radius="xl"
                   size="md"
                 >
@@ -278,7 +317,7 @@ export function DashboardPage() {
                     <Button
                       className={classes.emptyButton}
                       leftSection={<IconPlus size={17} />}
-                      onClick={createModal.open}
+                      onClick={openCreateModal}
                       radius="xl"
                       variant="default"
                     >
@@ -315,6 +354,40 @@ export function DashboardPage() {
                           <Text>{formatMoney(subscription.amount, subscription.currency)}</Text>
                           <Text>{periodLabels[subscription.billingPeriod]}</Text>
                         </Box>
+                        <Menu
+                          position="bottom-end"
+                          shadow="xl"
+                          transitionProps={{ duration: 0 }}
+                          width={190}
+                          withinPortal={false}
+                        >
+                          <Menu.Target>
+                            <ActionIcon
+                              aria-label={`Действия для ${subscription.name}`}
+                              className={classes.subscriptionActions}
+                              radius="xl"
+                              size={36}
+                              variant="transparent"
+                            >
+                              <IconDotsVertical size={18} />
+                            </ActionIcon>
+                          </Menu.Target>
+                          <Menu.Dropdown className={classes.actionsMenu}>
+                            <Menu.Item
+                              leftSection={<IconEdit size={16} />}
+                              onClick={() => openEditModal(subscription)}
+                            >
+                              Редактировать
+                            </Menu.Item>
+                            <Menu.Item
+                              color="red"
+                              leftSection={<IconArchive size={16} />}
+                              onClick={() => openArchiveModal(subscription)}
+                            >
+                              В архив
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
                       </Box>
                     ))}
                   </Stack>
@@ -327,9 +400,19 @@ export function DashboardPage() {
 
       <Suspense fallback={null}>
         <CreateSubscriptionModal
-          onClose={createModal.close}
-          onCreated={() => void handleSubscriptionCreated()}
-          opened={createOpened}
+          onClose={() => {
+            createModal.close();
+            editModal.close();
+          }}
+          onSaved={() => void handleSubscriptionCreated()}
+          opened={createOpened || editOpened}
+          subscription={editingSubscription}
+        />
+        <ArchiveSubscriptionModal
+          onArchived={(subscription) => void handleSubscriptionArchived(subscription)}
+          onClose={archiveModal.close}
+          opened={archiveOpened}
+          subscription={archivingSubscription}
         />
       </Suspense>
     </>

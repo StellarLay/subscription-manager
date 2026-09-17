@@ -132,6 +132,80 @@
           "Subscriptions"
         ]
       }
+    },
+    "/api/subscriptions/{id}": {
+      "patch": {
+        "operationId": "updateSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubscriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/api/subscriptions/{id}/archive": {
+      "patch": {
+        "operationId": "archiveSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Archive a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
     }
   },
   "info": {
@@ -415,7 +489,8 @@
           },
           "paymentMethodId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           }
         },
         "required": [
@@ -425,6 +500,58 @@
           "billingPeriod",
           "nextChargeDate"
         ]
+      },
+      "UpdateSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "YouTube Premium",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "amount": {
+            "type": "number",
+            "example": 799,
+            "minimum": 0.01,
+            "multipleOf": 0.01
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "RUB",
+              "USD",
+              "EUR"
+            ],
+            "example": "RUB"
+          },
+          "billingPeriod": {
+            "type": "string",
+            "enum": [
+              "WEEK",
+              "MONTH",
+              "QUARTER",
+              "YEAR",
+              "CUSTOM"
+            ],
+            "example": "MONTH"
+          },
+          "nextChargeDate": {
+            "type": "string",
+            "example": "2026-09-15",
+            "format": "date"
+          },
+          "category": {
+            "type": "string",
+            "example": "Развлечения",
+            "maxLength": 64
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
       }
     }
   }

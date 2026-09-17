@@ -1,4 +1,4 @@
-import { CreateSubscriptionBody } from '@subscription-manager/api-client';
+import { CreateSubscriptionBody, UpdateSubscriptionBody } from '@subscription-manager/api-client';
 import { describe, expect, it } from 'vitest';
 
 describe('CreateSubscriptionBody', () => {
@@ -25,5 +25,15 @@ describe('CreateSubscriptionBody', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('accepts editing fields and clearing a payment method', () => {
+    const result = UpdateSubscriptionBody.safeParse({
+      name: 'YouTube Premium Family',
+      amount: 999,
+      paymentMethodId: null,
+    });
+
+    expect(result.success).toBe(true);
   });
 });

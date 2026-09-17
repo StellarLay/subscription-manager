@@ -8,6 +8,7 @@ import {
   type SubscriptionResponseDto,
   useCreateSubscription,
   useGetPaymentMethods,
+  useUpdateSubscription,
 } from '@subscription-manager/api-client';
 import {
   Alert,
@@ -25,9 +26,10 @@ import {
 import { DateInput } from '@mantine/dates';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconAlertCircle, IconCalendar, IconPlus } from '@tabler/icons-react';
+import { IconAlertCircle, IconCalendar, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Controller, type DefaultValues, useForm } from 'react-hook-form';
 
 import { CreatePaymentMethodModal } from '@/features/payment-methods/create-payment-method/create-payment-method-modal';
 
@@ -36,7 +38,8 @@ import classes from './create-subscription-modal.module.css';
 interface CreateSubscriptionModalProps {
   opened: boolean;
   onClose: () => void;
-  onCreated: (subscription: SubscriptionResponseDto) => void;
+  onSaved: (subscription: SubscriptionResponseDto) => void;
+  subscription?: SubscriptionResponseDto | null;
 }
 
 const billingPeriods = [
@@ -63,16 +66,48 @@ function getTomorrow(): string {
   ].join('-');
 }
 
+function getDefaultValues(
+  subscription?: SubscriptionResponseDto | null,
+): DefaultValues<CreateSubscriptionDto> {
+  if (subscription) {
+    return {
+      name: subscription.name,
+      amount: Number(subscription.amount),
+      currency: subscription.currency,
+      billingPeriod: subscription.billingPeriod,
+      nextChargeDate: subscription.nextChargeDate,
+      category: subscription.category ?? '',
+      paymentMethodId: subscription.paymentMethod?.id ?? null,
+    };
+  }
+
+  return {
+    name: '',
+    amount: undefined,
+    currency: CreateSubscriptionDtoCurrency.RUB,
+    billingPeriod: CreateSubscriptionDtoBillingPeriod.MONTH,
+    nextChargeDate: getTomorrow(),
+    category: '',
+    paymentMethodId: null,
+  };
+}
+
 export function CreateSubscriptionModal({
   opened,
   onClose,
-  onCreated,
+  onSaved,
+  subscription,
 }: CreateSubscriptionModalProps) {
   const isMobile = useMediaQuery('(max-width: 48em)', undefined, {
     getInitialValueInEffect: false,
   });
   const [paymentMethodOpened, paymentMethodModal] = useDisclosure(false);
-  const { trigger, isMutating } = useCreateSubscription();
+  const isEditing = Boolean(subscription);
+  const { trigger: createSubscription, isMutating: isCreating } = useCreateSubscription();
+  const { trigger: updateSubscription, isMutating: isUpdating } = useUpdateSubscription(
+    subscription?.id ?? '',
+  );
+  const isMutating = isCreating || isUpdating;
   const {
     data: paymentMethods = [],
     error: paymentMethodsError,
@@ -89,38 +124,41 @@ export function CreateSubscriptionModal({
     formState: { errors },
   } = useForm<CreateSubscriptionDto>({
     resolver: zodResolver(CreateSubscriptionBody),
-    defaultValues: {
-      name: '',
-      amount: undefined,
-      currency: CreateSubscriptionDtoCurrency.RUB,
-      billingPeriod: CreateSubscriptionDtoBillingPeriod.MONTH,
-      nextChargeDate: getTomorrow(),
-      category: '',
-      paymentMethodId: undefined,
-    },
+    defaultValues: getDefaultValues(subscription),
   });
+
+  useEffect(() => {
+    if (!opened) return;
+
+    reset(getDefaultValues(subscription));
+  }, [opened, reset, subscription]);
 
   const close = () => {
     if (isMutating) return;
-    reset();
+    reset(getDefaultValues(subscription));
     onClose();
   };
 
   const submit = handleSubmit(async (values) => {
     try {
-      const subscription = await trigger({
+      const valuesToSave = {
         ...values,
         category: values.category || undefined,
-        paymentMethodId: values.paymentMethodId || undefined,
-      });
+        paymentMethodId: values.paymentMethodId ?? null,
+      };
+      const savedSubscription = subscription
+        ? await updateSubscription(valuesToSave)
+        : await createSubscription(valuesToSave);
 
-      onCreated(subscription);
+      onSaved(savedSubscription);
       notifications.show({
         color: 'signal',
-        message: `${subscription.name} добавлена`,
-        title: 'Готово',
+        message: isEditing
+          ? `${savedSubscription.name} обновлена`
+          : `${savedSubscription.name} добавлена`,
+        title: isEditing ? 'Изменения сохранены' : 'Готово',
       });
-      reset();
+      reset(getDefaultValues());
       onClose();
     } catch (error) {
       setError('root', {
@@ -165,8 +203,12 @@ export function CreateSubscriptionModal({
         size="lg"
         title={
           <div>
-            <Text className={classes.kicker}>Новая подписка</Text>
-            <Text className={classes.heading}>Добавить регулярный платёж</Text>
+            <Text className={classes.kicker}>
+              {isEditing ? 'Редактирование' : 'Новая подписка'}
+            </Text>
+            <Text className={classes.heading}>
+              {isEditing ? 'Изменить регулярный платёж' : 'Добавить регулярный платёж'}
+            </Text>
           </div>
         }
         transitionProps={{ transition: isMobile ? 'slide-up' : 'pop' }}
@@ -351,12 +393,12 @@ export function CreateSubscriptionModal({
               </Button>
               <Button
                 className={classes.submitButton}
-                leftSection={<IconPlus size={17} />}
+                leftSection={isEditing ? <IconDeviceFloppy size={17} /> : <IconPlus size={17} />}
                 loading={isMutating}
                 radius="xl"
                 type="submit"
               >
-                Добавить
+                {isEditing ? 'Сохранить' : 'Добавить'}
               </Button>
             </Group>
           </Stack>

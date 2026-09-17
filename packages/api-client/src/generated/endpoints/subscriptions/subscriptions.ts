@@ -7,6 +7,7 @@
  */
 import useSwr from 'swr';
 import type {
+  Arguments,
   Key,
   SWRConfiguration
 } from 'swr';
@@ -18,7 +19,8 @@ import type {
 
 import type {
   CreateSubscriptionDto,
-  SubscriptionResponseDto
+  SubscriptionResponseDto,
+  UpdateSubscriptionDto
 } from '../../models';
 
 import { customFetch } from '../../../http/client';
@@ -128,6 +130,119 @@ export const useCreateSubscription = <TError = unknown>(
 
   const swrKey = swrOptions?.swrKey ?? getCreateSubscriptionMutationKey();
   const swrFn = getCreateSubscriptionMutationFetcher(requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+export const getUpdateSubscriptionUrl = (id: string,) => {
+
+
+
+
+  return `/api/subscriptions/${id}`
+}
+
+/**
+ * @summary Update a subscription
+ */
+export const updateSubscription = async (id: string,
+    updateSubscriptionDto: UpdateSubscriptionDto, options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionResponseDto> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<SubscriptionResponseDto>(getUpdateSubscriptionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateSubscriptionDto)
+  }
+);}
+
+
+
+
+export const getUpdateSubscriptionMutationFetcher = (id: string, options?: SecondParameter<typeof customFetch>) => {
+  return (_: Key, { arg }: { arg: UpdateSubscriptionDto }) => {
+    return updateSubscription(id, arg, options);
+  }
+}
+export const getUpdateSubscriptionMutationKey = (id: string,) => [`/api/subscriptions/${id}`] as const;
+
+export type UpdateSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof updateSubscription>>>
+
+/**
+ * @summary Update a subscription
+ */
+export const useUpdateSubscription = <TError = unknown>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof updateSubscription>>, TError, Key, UpdateSubscriptionDto, Awaited<ReturnType<typeof updateSubscription>>> & { swrKey?: string }, request?: SecondParameter<typeof customFetch>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getUpdateSubscriptionMutationKey(id);
+  const swrFn = getUpdateSubscriptionMutationFetcher(id, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+export const getArchiveSubscriptionUrl = (id: string,) => {
+
+
+
+
+  return `/api/subscriptions/${id}/archive`
+}
+
+/**
+ * @summary Archive a subscription
+ */
+export const archiveSubscription = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionResponseDto> => {
+
+  return customFetch<SubscriptionResponseDto>(getArchiveSubscriptionUrl(id),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getArchiveSubscriptionMutationFetcher = (id: string, options?: SecondParameter<typeof customFetch>) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return archiveSubscription(id, options);
+  }
+}
+export const getArchiveSubscriptionMutationKey = (id: string,) => [`/api/subscriptions/${id}/archive`] as const;
+
+export type ArchiveSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof archiveSubscription>>>
+
+/**
+ * @summary Archive a subscription
+ */
+export const useArchiveSubscription = <TError = unknown>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof archiveSubscription>>, TError, Key, Arguments, Awaited<ReturnType<typeof archiveSubscription>>> & { swrKey?: string }, request?: SecondParameter<typeof customFetch>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getArchiveSubscriptionMutationKey(id);
+  const swrFn = getArchiveSubscriptionMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

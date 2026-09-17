@@ -51,8 +51,8 @@ export class CreateSubscriptionDto {
   @MaxLength(64)
   category?: string;
 
-  @ApiPropertyOptional({ format: 'uuid', type: String })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   @IsOptional()
   @IsUUID()
-  paymentMethodId?: string;
+  paymentMethodId?: string | null;
 }

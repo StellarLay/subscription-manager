@@ -90,8 +90,30 @@ export const CreateSubscriptionDto = zod.object({
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']),
   "nextChargeDate": zod.iso.date(),
   "category": zod.string().max(createSubscriptionDtoCategoryMax).optional(),
-  "paymentMethodId": zod.uuid().optional()
+  "paymentMethodId": zod.uuid().nullish()
 });
 
 export type CreateSubscriptionDto = zod.input<typeof CreateSubscriptionDto>;
 export type CreateSubscriptionDtoOutput = zod.output<typeof CreateSubscriptionDto>;
+
+export const updateSubscriptionDtoNameMax = 160;
+
+export const updateSubscriptionDtoAmountMin = 0.01;
+export const updateSubscriptionDtoAmountMultipleOf = 0.01;
+
+export const updateSubscriptionDtoCategoryMax = 64;
+
+
+
+export const UpdateSubscriptionDto = zod.object({
+  "name": zod.string().min(1).max(updateSubscriptionDtoNameMax).optional(),
+  "amount": zod.number().min(updateSubscriptionDtoAmountMin).multipleOf(updateSubscriptionDtoAmountMultipleOf).optional(),
+  "currency": zod.enum(['RUB', 'USD', 'EUR']).optional(),
+  "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']).optional(),
+  "nextChargeDate": zod.iso.date().optional(),
+  "category": zod.string().max(updateSubscriptionDtoCategoryMax).optional(),
+  "paymentMethodId": zod.uuid().nullish()
+});
+
+export type UpdateSubscriptionDto = zod.input<typeof UpdateSubscriptionDto>;
+export type UpdateSubscriptionDtoOutput = zod.output<typeof UpdateSubscriptionDto>;

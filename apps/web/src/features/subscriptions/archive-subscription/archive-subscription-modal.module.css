@@ -1,0 +1,49 @@
+.content {
+  border: 1px solid var(--app-border-strong);
+  background: #0d1016;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.58);
+}
+
+.header {
+  min-height: 74px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--app-border);
+  background: #0d1016;
+}
+
+.title {
+  color: var(--app-text);
+  font-size: 1.05rem;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+}
+
+.body {
+  padding: 22px;
+}
+
+.description {
+  color: var(--app-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.description :global(.mantine-Text-root) {
+  color: var(--app-text);
+  font-weight: 650;
+}
+
+.actions {
+  padding-top: 2px;
+}
+
+@media (max-width: 48em) {
+  .content {
+    margin: 16px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+  }
+}

@@ -22,3 +22,6 @@ export * from './subscriptionResponseDto';
 export * from './subscriptionResponseDtoBillingPeriod';
 export * from './subscriptionResponseDtoCurrency';
 export * from './subscriptionResponseDtoStatus';
+export * from './updateSubscriptionDto';
+export * from './updateSubscriptionDtoBillingPeriod';
+export * from './updateSubscriptionDtoCurrency';

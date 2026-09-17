@@ -373,7 +373,7 @@
 
 .subscriptionRow {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) minmax(140px, 0.55fr) minmax(110px, auto);
+  grid-template-columns: 46px minmax(0, 1fr) minmax(140px, 0.55fr) minmax(110px, auto) 36px;
   gap: 16px;
   align-items: center;
   min-height: 82px;
@@ -384,6 +384,28 @@
   transition:
     border-color 160ms ease,
     background 160ms ease;
+}
+
+.subscriptionActions {
+  color: #737a72;
+}
+
+.subscriptionActions:hover,
+.subscriptionActions[data-expanded='true'] {
+  color: var(--app-text);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.actionsMenu {
+  padding: 7px;
+  border-color: var(--app-border-strong);
+  background: #12161e;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
+}
+
+.actionsMenu :global(.mantine-Menu-item) {
+  border-radius: 9px;
+  font-size: 0.8rem;
 }
 
 .subscriptionRow:hover {
@@ -628,7 +650,7 @@
   }
 
   .subscriptionRow {
-    grid-template-columns: 42px minmax(0, 1fr) auto;
+    grid-template-columns: 42px minmax(0, 1fr) auto 34px;
     gap: 12px;
     min-height: 86px;
     padding: 13px 12px;
@@ -658,6 +680,11 @@
   .subscriptionPrice {
     grid-row: 1 / span 2;
     grid-column: 3;
+  }
+
+  .subscriptionActions {
+    grid-row: 1 / span 2;
+    grid-column: 4;
   }
 }
 

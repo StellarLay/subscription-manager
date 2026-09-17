@@ -5,8 +5,11 @@
  * API for subscriptions, recurring payments and reminders
  * OpenAPI spec version: 0.1.0
  */
+import * as zod from 'zod';
+
 import {
-  CreateSubscriptionDto
+  CreateSubscriptionDto,
+  UpdateSubscriptionDto
 } from '../subscriptionManagerAPI.schemas.zod';
 
 
@@ -14,4 +17,20 @@ import {
  * @summary Create a subscription
  */
 export const CreateSubscriptionBody = CreateSubscriptionDto
+
+/**
+ * @summary Update a subscription
+ */
+export const UpdateSubscriptionParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const UpdateSubscriptionBody = UpdateSubscriptionDto
+
+/**
+ * @summary Archive a subscription
+ */
+export const ArchiveSubscriptionParams = zod.object({
+  "id": zod.uuid()
+})
 
