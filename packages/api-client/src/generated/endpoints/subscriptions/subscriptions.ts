@@ -138,6 +138,54 @@ export const useCreateSubscription = <TError = unknown>(
     ...query
   }
 }
+export const getGetArchivedSubscriptionsUrl = () => {
+
+
+
+
+  return `/api/subscriptions/archived`
+}
+
+/**
+ * @summary Get archived subscriptions
+ */
+export const getArchivedSubscriptions = async ( options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionResponseDto[]> => {
+
+  return customFetch<SubscriptionResponseDto[]>(getGetArchivedSubscriptionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+export const getGetArchivedSubscriptionsKey = () => [`/api/subscriptions/archived`] as const;
+
+export type GetArchivedSubscriptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getArchivedSubscriptions>>>
+
+/**
+ * @summary Get archived subscriptions
+ */
+export const useGetArchivedSubscriptions = <TError = unknown>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getArchivedSubscriptions>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customFetch> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetArchivedSubscriptionsKey() : null);
+  const swrFn = () => getArchivedSubscriptions(requestOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 export const getUpdateSubscriptionUrl = (id: string,) => {
 
 
@@ -198,6 +246,59 @@ export const useUpdateSubscription = <TError = unknown>(
     ...query
   }
 }
+export const getDeleteSubscriptionUrl = (id: string,) => {
+
+
+
+
+  return `/api/subscriptions/${id}`
+}
+
+/**
+ * @summary Permanently delete a subscription
+ */
+export const deleteSubscription = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionResponseDto> => {
+
+  return customFetch<SubscriptionResponseDto>(getDeleteSubscriptionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSubscriptionMutationFetcher = (id: string, options?: SecondParameter<typeof customFetch>) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteSubscription(id, options);
+  }
+}
+export const getDeleteSubscriptionMutationKey = (id: string,) => [`/api/subscriptions/${id}`] as const;
+
+export type DeleteSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSubscription>>>
+
+/**
+ * @summary Permanently delete a subscription
+ */
+export const useDeleteSubscription = <TError = unknown>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteSubscription>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteSubscription>>> & { swrKey?: string }, request?: SecondParameter<typeof customFetch>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteSubscriptionMutationKey(id);
+  const swrFn = getDeleteSubscriptionMutationFetcher(id, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 export const getArchiveSubscriptionUrl = (id: string,) => {
 
 
@@ -243,6 +344,59 @@ export const useArchiveSubscription = <TError = unknown>(
 
   const swrKey = swrOptions?.swrKey ?? getArchiveSubscriptionMutationKey(id);
   const swrFn = getArchiveSubscriptionMutationFetcher(id, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+export const getRestoreSubscriptionUrl = (id: string,) => {
+
+
+
+
+  return `/api/subscriptions/${id}/restore`
+}
+
+/**
+ * @summary Restore a subscription
+ */
+export const restoreSubscription = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionResponseDto> => {
+
+  return customFetch<SubscriptionResponseDto>(getRestoreSubscriptionUrl(id),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getRestoreSubscriptionMutationFetcher = (id: string, options?: SecondParameter<typeof customFetch>) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return restoreSubscription(id, options);
+  }
+}
+export const getRestoreSubscriptionMutationKey = (id: string,) => [`/api/subscriptions/${id}/restore`] as const;
+
+export type RestoreSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof restoreSubscription>>>
+
+/**
+ * @summary Restore a subscription
+ */
+export const useRestoreSubscription = <TError = unknown>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof restoreSubscription>>, TError, Key, Arguments, Awaited<ReturnType<typeof restoreSubscription>>> & { swrKey?: string }, request?: SecondParameter<typeof customFetch>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getRestoreSubscriptionMutationKey(id);
+  const swrFn = getRestoreSubscriptionMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

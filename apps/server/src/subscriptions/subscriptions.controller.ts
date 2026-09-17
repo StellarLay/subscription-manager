@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
@@ -23,6 +23,16 @@ export class SubscriptionsController {
   @ApiOkResponse({ isArray: true, type: SubscriptionResponseDto })
   getSubscriptions(): Promise<SubscriptionResponseDto[]> {
     return this.subscriptionsService.findAll();
+  }
+
+  @Get('archived')
+  @ApiOperation({
+    operationId: 'getArchivedSubscriptions',
+    summary: 'Get archived subscriptions',
+  })
+  @ApiOkResponse({ isArray: true, type: SubscriptionResponseDto })
+  getArchivedSubscriptions(): Promise<SubscriptionResponseDto[]> {
+    return this.subscriptionsService.findArchived();
   }
 
   @Post()
@@ -53,5 +63,25 @@ export class SubscriptionsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<SubscriptionResponseDto> {
     return this.subscriptionsService.archive(id);
+  }
+
+  @Patch(':id/restore')
+  @ApiOperation({ operationId: 'restoreSubscription', summary: 'Restore a subscription' })
+  @ApiParam({ format: 'uuid', name: 'id', type: String })
+  @ApiOkResponse({ type: SubscriptionResponseDto })
+  restoreSubscription(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<SubscriptionResponseDto> {
+    return this.subscriptionsService.restore(id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ operationId: 'deleteSubscription', summary: 'Permanently delete a subscription' })
+  @ApiParam({ format: 'uuid', name: 'id', type: String })
+  @ApiOkResponse({ type: SubscriptionResponseDto })
+  deleteSubscription(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<SubscriptionResponseDto> {
+    return this.subscriptionsService.remove(id);
   }
 }

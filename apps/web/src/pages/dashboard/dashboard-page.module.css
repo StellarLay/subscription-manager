@@ -293,6 +293,30 @@
   letter-spacing: -0.02em;
 }
 
+.listTabs {
+  padding: 3px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.listTab {
+  padding-inline: 13px;
+  color: #7c837a;
+  font-size: 0.73rem;
+  font-weight: 650;
+}
+
+.listTab:hover {
+  color: #b8beb5;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.listTab[data-active='true'] {
+  color: #071006;
+  background: var(--app-signal);
+}
+
 .counter {
   min-width: 28px;
   color: #899087;
@@ -411,6 +435,15 @@
 .subscriptionRow:hover {
   border-color: var(--app-border);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.subscriptionRow[data-archived='true'] {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.subscriptionRow[data-archived='true'] .subscriptionMark {
+  color: #a8aea6;
+  background: #282d34;
 }
 
 .subscriptionMark {
@@ -633,7 +666,18 @@
   }
 
   .panelHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
     padding-bottom: 17px;
+  }
+
+  .listTabs {
+    width: 100%;
+  }
+
+  .listTab {
+    flex: 1;
   }
 
   .textButton {

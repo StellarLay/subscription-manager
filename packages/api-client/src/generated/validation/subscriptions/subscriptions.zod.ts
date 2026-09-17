@@ -28,9 +28,23 @@ export const UpdateSubscriptionParams = zod.object({
 export const UpdateSubscriptionBody = UpdateSubscriptionDto
 
 /**
+ * @summary Permanently delete a subscription
+ */
+export const DeleteSubscriptionParams = zod.object({
+  "id": zod.uuid()
+})
+
+/**
  * @summary Archive a subscription
  */
 export const ArchiveSubscriptionParams = zod.object({
+  "id": zod.uuid()
+})
+
+/**
+ * @summary Restore a subscription
+ */
+export const RestoreSubscriptionParams = zod.object({
   "id": zod.uuid()
 })
 

@@ -32,6 +32,20 @@ export class SubscriptionsService {
     return subscriptions.map((subscription) => this.toResponse(subscription));
   }
 
+  async findArchived(): Promise<SubscriptionResponseDto[]> {
+    const userId = await this.currentUser.getId();
+    const subscriptions = await this.prisma.recurringPayment.findMany({
+      where: {
+        userId,
+        status: RecurringPaymentStatus.ARCHIVED,
+      },
+      include: { paymentMethod: true },
+      orderBy: [{ archivedAt: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return subscriptions.map((subscription) => this.toResponse(subscription));
+  }
+
   async create(input: CreateSubscriptionDto): Promise<SubscriptionResponseDto> {
     const userId = await this.currentUser.getId();
 
@@ -105,6 +119,43 @@ export class SubscriptionsService {
     return this.toResponse(subscription);
   }
 
+  async restore(id: string): Promise<SubscriptionResponseDto> {
+    const userId = await this.currentUser.getId();
+
+    await this.ensureArchivedSubscriptionOwned(id, userId);
+
+    const subscription = await this.prisma.recurringPayment.update({
+      where: { id },
+      data: {
+        archivedAt: null,
+        status: RecurringPaymentStatus.ACTIVE,
+      },
+      include: { paymentMethod: true },
+    });
+
+    return this.toResponse(subscription);
+  }
+
+  async remove(id: string): Promise<SubscriptionResponseDto> {
+    const userId = await this.currentUser.getId();
+    const subscription = await this.prisma.recurringPayment.findFirst({
+      where: { id, userId },
+      include: { paymentMethod: true },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (subscription.status !== RecurringPaymentStatus.ARCHIVED) {
+      throw new BadRequestException('Archive subscription before deletion');
+    }
+
+    await this.prisma.recurringPayment.delete({ where: { id } });
+
+    return this.toResponse(subscription);
+  }
+
   private async ensureSubscriptionOwned(id: string, userId: string): Promise<void> {
     const subscription = await this.prisma.recurringPayment.findFirst({
       where: {
@@ -117,6 +168,21 @@ export class SubscriptionsService {
 
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
+    }
+  }
+
+  private async ensureArchivedSubscriptionOwned(id: string, userId: string): Promise<void> {
+    const subscription = await this.prisma.recurringPayment.findFirst({
+      where: {
+        id,
+        userId,
+        status: RecurringPaymentStatus.ARCHIVED,
+      },
+      select: { id: true },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Archived subscription not found');
     }
   }
 

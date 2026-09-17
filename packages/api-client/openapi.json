@@ -133,6 +133,31 @@
         ]
       }
     },
+    "/api/subscriptions/archived": {
+      "get": {
+        "operationId": "getArchivedSubscriptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get archived subscriptions",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
     "/api/subscriptions/{id}": {
       "patch": {
         "operationId": "updateSubscription",
@@ -173,6 +198,36 @@
         "tags": [
           "Subscriptions"
         ]
+      },
+      "delete": {
+        "operationId": "deleteSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Permanently delete a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
       }
     },
     "/api/subscriptions/{id}/archive": {
@@ -202,6 +257,38 @@
           }
         },
         "summary": "Archive a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/api/subscriptions/{id}/restore": {
+      "patch": {
+        "operationId": "restoreSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Restore a subscription",
         "tags": [
           "Subscriptions"
         ]
