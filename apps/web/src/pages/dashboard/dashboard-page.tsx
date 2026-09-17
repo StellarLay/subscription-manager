@@ -298,7 +298,13 @@ export function DashboardPage() {
                           <Text className={classes.subscriptionName}>{subscription.name}</Text>
                           <Text className={classes.subscriptionMeta}>
                             {subscription.category || 'Без категории'} ·{' '}
-                            {periodLabels[subscription.billingPeriod]}
+                            {subscription.paymentMethod
+                              ? `${subscription.paymentMethod.name}${
+                                  subscription.paymentMethod.lastFour
+                                    ? ` • ${subscription.paymentMethod.lastFour}`
+                                    : ''
+                                }`
+                              : 'Без способа оплаты'}
                           </Text>
                         </Box>
                         <Box className={classes.chargeDate}>

@@ -6,13 +6,18 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './createPaymentMethodDto';
+export * from './createPaymentMethodDtoType';
 export * from './createSubscriptionDto';
 export * from './createSubscriptionDtoBillingPeriod';
 export * from './createSubscriptionDtoCurrency';
 export * from './healthResponseDto';
 export * from './healthResponseDtoDatabase';
 export * from './healthResponseDtoStatus';
+export * from './paymentMethodResponseDto';
+export * from './paymentMethodResponseDtoType';
 export * from './subscriptionPaymentMethodDto';
+export * from './subscriptionPaymentMethodDtoType';
 export * from './subscriptionResponseDto';
 export * from './subscriptionResponseDtoBillingPeriod';
 export * from './subscriptionResponseDtoCurrency';

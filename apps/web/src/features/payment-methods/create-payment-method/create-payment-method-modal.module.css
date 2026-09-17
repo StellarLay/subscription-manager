@@ -1,12 +1,8 @@
-.overlay {
-  background: rgba(0, 0, 0, 0.76);
-}
-
 .content {
   overflow: visible;
   border: 1px solid var(--app-border-strong);
   background: #0d1016;
-  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.58);
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.64);
 }
 
 .header {
@@ -59,31 +55,7 @@
   box-shadow: 0 0 0 3px rgba(115, 255, 91, 0.055);
 }
 
-.fieldHeader {
-  min-height: 29px;
-  margin-bottom: 7px;
-}
-
-.fieldLabel {
-  color: #b7bdb4;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.fieldAction {
-  height: 26px;
-  padding-inline: 4px;
-  color: var(--app-signal);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.fieldAction:hover {
-  color: #a8ff99;
-  background: transparent;
-}
-
-.reminderHint {
+.securityNote {
   padding: 13px 15px;
   color: #7e857c;
   border: 1px solid var(--app-border);

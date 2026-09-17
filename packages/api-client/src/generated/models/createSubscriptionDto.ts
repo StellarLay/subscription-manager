@@ -21,4 +21,5 @@ export interface CreateSubscriptionDto {
   nextChargeDate: string;
   /** @maxLength 64 */
   category?: string;
+  paymentMethodId?: string;
 }

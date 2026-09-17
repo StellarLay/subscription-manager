@@ -1,6 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import { BillingPeriod, RecurringPaymentStatus } from '../../generated/prisma/client';
+import {
+  BillingPeriod,
+  PaymentMethodType,
+  RecurringPaymentStatus,
+} from '../../generated/prisma/client';
 
 export class SubscriptionPaymentMethodDto {
   @ApiProperty({ format: 'uuid', type: String })
@@ -11,6 +15,12 @@ export class SubscriptionPaymentMethodDto {
 
   @ApiPropertyOptional({ example: '4242', nullable: true, type: String })
   lastFour!: string | null;
+
+  @ApiProperty({ enum: PaymentMethodType, type: String })
+  type!: PaymentMethodType;
+
+  @ApiPropertyOptional({ example: '#73ff5b', nullable: true, type: String })
+  color!: string | null;
 }
 
 export class SubscriptionResponseDto {

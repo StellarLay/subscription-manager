@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { NotificationChannel, Prisma, RecurringPaymentStatus } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
+import { CurrentUserService } from '../users/current-user.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { SubscriptionResponseDto } from './dto/subscription-response.dto';
-
-const DEMO_USER_EMAIL = 'demo@subscription-manager.local';
 
 type SubscriptionRecord = Prisma.RecurringPaymentGetPayload<{
   include: { paymentMethod: true };
@@ -13,10 +12,13 @@ type SubscriptionRecord = Prisma.RecurringPaymentGetPayload<{
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly currentUser: CurrentUserService,
+  ) {}
 
   async findAll(): Promise<SubscriptionResponseDto[]> {
-    const userId = await this.getDemoUserId();
+    const userId = await this.currentUser.getId();
     const subscriptions = await this.prisma.recurringPayment.findMany({
       where: {
         userId,
@@ -30,7 +32,23 @@ export class SubscriptionsService {
   }
 
   async create(input: CreateSubscriptionDto): Promise<SubscriptionResponseDto> {
-    const userId = await this.getDemoUserId();
+    const userId = await this.currentUser.getId();
+
+    if (input.paymentMethodId) {
+      const paymentMethod = await this.prisma.paymentMethod.findFirst({
+        where: {
+          id: input.paymentMethodId,
+          userId,
+          archivedAt: null,
+        },
+        select: { id: true },
+      });
+
+      if (!paymentMethod) {
+        throw new BadRequestException('Payment method not found');
+      }
+    }
+
     const subscription = await this.prisma.recurringPayment.create({
       data: {
         userId,
@@ -40,6 +58,7 @@ export class SubscriptionsService {
         billingPeriod: input.billingPeriod,
         nextChargeDate: new Date(`${input.nextChargeDate}T00:00:00.000Z`),
         category: input.category?.trim() || null,
+        paymentMethodId: input.paymentMethodId || null,
         reminderRules: {
           create: {
             channel: NotificationChannel.EMAIL,
@@ -52,20 +71,6 @@ export class SubscriptionsService {
     });
 
     return this.toResponse(subscription);
-  }
-
-  private async getDemoUserId(): Promise<string> {
-    const user = await this.prisma.user.upsert({
-      where: { email: DEMO_USER_EMAIL },
-      update: {},
-      create: {
-        email: DEMO_USER_EMAIL,
-        displayName: 'Demo User',
-      },
-      select: { id: true },
-    });
-
-    return user.id;
   }
 
   private toResponse(subscription: SubscriptionRecord): SubscriptionResponseDto {
@@ -83,6 +88,8 @@ export class SubscriptionsService {
             id: subscription.paymentMethod.id,
             name: subscription.paymentMethod.name,
             lastFour: subscription.paymentMethod.lastFour,
+            type: subscription.paymentMethod.type,
+            color: subscription.paymentMethod.color,
           }
         : null,
       createdAt: subscription.createdAt.toISOString(),

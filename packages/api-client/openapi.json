@@ -23,6 +23,61 @@
         ]
       }
     },
+    "/api/payment-methods": {
+      "get": {
+        "operationId": "getPaymentMethods",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentMethodResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get current user payment methods",
+        "tags": [
+          "Payment methods"
+        ]
+      },
+      "post": {
+        "operationId": "createPaymentMethod",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a payment method",
+        "tags": [
+          "Payment methods"
+        ]
+      }
+    },
     "/api/subscriptions": {
       "get": {
         "operationId": "getSubscriptions",
@@ -118,6 +173,84 @@
           "timestamp"
         ]
       },
+      "PaymentMethodResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Тинькофф Black"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "BANK_ACCOUNT",
+              "WALLET",
+              "OTHER"
+            ]
+          },
+          "lastFour": {
+            "type": "string",
+            "example": "4242",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "example": "#73ff5b",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-17T12:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "createdAt"
+        ]
+      },
+      "CreatePaymentMethodDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Тинькофф Black",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "BANK_ACCOUNT",
+              "WALLET",
+              "OTHER"
+            ],
+            "example": "CARD"
+          },
+          "lastFour": {
+            "type": "string",
+            "example": "4242",
+            "pattern": "^\\d{4}$"
+          },
+          "color": {
+            "type": "string",
+            "example": "#73ff5b",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
       "SubscriptionPaymentMethodDto": {
         "type": "object",
         "properties": {
@@ -133,11 +266,26 @@
             "type": "string",
             "example": "4242",
             "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "BANK_ACCOUNT",
+              "WALLET",
+              "OTHER"
+            ]
+          },
+          "color": {
+            "type": "string",
+            "example": "#73ff5b",
+            "nullable": true
           }
         },
         "required": [
           "id",
-          "name"
+          "name",
+          "type"
         ]
       },
       "SubscriptionResponseDto": {
@@ -264,6 +412,10 @@
             "type": "string",
             "example": "Развлечения",
             "maxLength": 64
+          },
+          "paymentMethodId": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "required": [

@@ -5,14 +5,15 @@
  * API for subscriptions, recurring payments and reminders
  * OpenAPI spec version: 0.1.0
  */
-import type { SubscriptionPaymentMethodDtoType } from './subscriptionPaymentMethodDtoType';
+import type { PaymentMethodResponseDtoType } from './paymentMethodResponseDtoType';
 
-export interface SubscriptionPaymentMethodDto {
+export interface PaymentMethodResponseDto {
   id: string;
   name: string;
+  type: PaymentMethodResponseDtoType;
   /** @nullable */
   lastFour?: string | null;
-  type: SubscriptionPaymentMethodDtoType;
   /** @nullable */
   color?: string | null;
+  createdAt: string;
 }

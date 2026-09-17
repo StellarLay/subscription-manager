@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   Min,
   MinLength,
@@ -49,4 +50,9 @@ export class CreateSubscriptionDto {
   @IsString()
   @MaxLength(64)
   category?: string;
+
+  @ApiPropertyOptional({ format: 'uuid', type: String })
+  @IsOptional()
+  @IsUUID()
+  paymentMethodId?: string;
 }

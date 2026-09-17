@@ -16,10 +16,40 @@ export const HealthResponseDto = zod.object({
 export type HealthResponseDto = zod.input<typeof HealthResponseDto>;
 export type HealthResponseDtoOutput = zod.output<typeof HealthResponseDto>;
 
+export const PaymentMethodResponseDto = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
+  "lastFour": zod.string().nullish(),
+  "color": zod.string().nullish(),
+  "createdAt": zod.iso.datetime({"offset":true})
+});
+
+export type PaymentMethodResponseDto = zod.input<typeof PaymentMethodResponseDto>;
+export type PaymentMethodResponseDtoOutput = zod.output<typeof PaymentMethodResponseDto>;
+
+export const createPaymentMethodDtoNameMax = 100;
+
+export const createPaymentMethodDtoLastFourRegExp = new RegExp('^\\d{4}$');
+export const createPaymentMethodDtoColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+
+
+export const CreatePaymentMethodDto = zod.object({
+  "name": zod.string().min(1).max(createPaymentMethodDtoNameMax),
+  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
+  "lastFour": zod.string().regex(createPaymentMethodDtoLastFourRegExp).optional(),
+  "color": zod.string().regex(createPaymentMethodDtoColorRegExp).optional()
+});
+
+export type CreatePaymentMethodDto = zod.input<typeof CreatePaymentMethodDto>;
+export type CreatePaymentMethodDtoOutput = zod.output<typeof CreatePaymentMethodDto>;
+
 export const SubscriptionPaymentMethodDto = zod.object({
   "id": zod.uuid(),
   "name": zod.string(),
-  "lastFour": zod.string().nullish()
+  "lastFour": zod.string().nullish(),
+  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
+  "color": zod.string().nullish()
 });
 
 export type SubscriptionPaymentMethodDto = zod.input<typeof SubscriptionPaymentMethodDto>;
@@ -59,7 +89,8 @@ export const CreateSubscriptionDto = zod.object({
   "currency": zod.enum(['RUB', 'USD', 'EUR']),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']),
   "nextChargeDate": zod.iso.date(),
-  "category": zod.string().max(createSubscriptionDtoCategoryMax).optional()
+  "category": zod.string().max(createSubscriptionDtoCategoryMax).optional(),
+  "paymentMethodId": zod.uuid().optional()
 });
 
 export type CreateSubscriptionDto = zod.input<typeof CreateSubscriptionDto>;
