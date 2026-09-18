@@ -50,6 +50,10 @@ import {
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
+import {
+  formatSubscriptionPeriod,
+  getMonthlyBillingFactor,
+} from '@/features/subscriptions/subscription-schedule';
 import { CategoryIcon } from '@/features/categories/category-icon';
 import { UpcomingPaymentsPanel } from '@/widgets/upcoming-payments/upcoming-payments-panel';
 import { getDaysUntilCharge } from '@/widgets/upcoming-payments/upcoming-payments';
@@ -82,22 +86,6 @@ const currentPeriod = new Intl.DateTimeFormat('ru-RU', {
   month: 'long',
   year: 'numeric',
 }).format(new Date());
-
-const periodLabels: Record<string, string> = {
-  WEEK: 'в неделю',
-  MONTH: 'в месяц',
-  QUARTER: 'в квартал',
-  YEAR: 'в год',
-  CUSTOM: 'регулярно',
-};
-
-const monthlyFactors: Record<string, number> = {
-  WEEK: 52 / 12,
-  MONTH: 1,
-  QUARTER: 1 / 3,
-  YEAR: 1 / 12,
-  CUSTOM: 1,
-};
 
 const sortOptions = [
   { label: 'Сначала ближайшие', value: 'date-asc' },
@@ -327,7 +315,9 @@ export function DashboardPage() {
     .filter(({ currency }) => currency === 'RUB')
     .reduce(
       (total, subscription) =>
-        total + Number(subscription.amount) * (monthlyFactors[subscription.billingPeriod] ?? 1),
+        total +
+        Number(subscription.amount) *
+          getMonthlyBillingFactor(subscription.billingPeriod, subscription.interval),
       0,
     );
 
@@ -713,7 +703,12 @@ export function DashboardPage() {
                           </Box>
                           <Box className={classes.subscriptionPrice}>
                             <Text>{formatMoney(subscription.amount, subscription.currency)}</Text>
-                            <Text>{periodLabels[subscription.billingPeriod]}</Text>
+                            <Text>
+                              {formatSubscriptionPeriod(
+                                subscription.billingPeriod,
+                                subscription.interval,
+                              )}
+                            </Text>
                           </Box>
                           <Menu
                             position="bottom-end"

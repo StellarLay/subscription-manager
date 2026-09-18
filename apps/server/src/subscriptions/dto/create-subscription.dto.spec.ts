@@ -12,8 +12,22 @@ describe('CreateSubscriptionDto', () => {
       amount: 799,
       currency: Currency.RUB,
       billingPeriod: BillingPeriod.MONTH,
+      interval: 2,
       nextChargeDate: '2026-09-15',
       categoryId: 'e6632ca7-bbed-4892-a8ef-efb824f51aa6',
+    });
+
+    await expect(validate(input)).resolves.toHaveLength(0);
+  });
+
+  it('accepts a custom day interval', async () => {
+    const input = plainToInstance(CreateSubscriptionDto, {
+      name: 'Filter replacement',
+      amount: 1590,
+      currency: Currency.RUB,
+      billingPeriod: BillingPeriod.CUSTOM,
+      interval: 45,
+      nextChargeDate: '2026-10-01',
     });
 
     await expect(validate(input)).resolves.toHaveLength(0);
@@ -37,5 +51,20 @@ describe('CreateSubscriptionDto', () => {
       'name',
       'nextChargeDate',
     ]);
+  });
+
+  it('rejects invalid intervals and timestamps instead of calendar dates', async () => {
+    const input = plainToInstance(CreateSubscriptionDto, {
+      name: 'Invalid schedule',
+      amount: 100,
+      currency: Currency.RUB,
+      billingPeriod: BillingPeriod.CUSTOM,
+      interval: 0,
+      nextChargeDate: '2026-09-15T10:00:00.000Z',
+    });
+
+    const errors = await validate(input);
+
+    expect(errors.map(({ property }) => property).sort()).toEqual(['interval', 'nextChargeDate']);
   });
 });

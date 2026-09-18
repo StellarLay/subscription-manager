@@ -18,11 +18,16 @@ describe('UpdateSubscriptionDto', () => {
   it('rejects invalid optional values', async () => {
     const input = plainToInstance(UpdateSubscriptionDto, {
       amount: 0,
+      interval: 0,
       paymentMethodId: 'not-a-uuid',
     });
 
     const errors = await validate(input);
 
-    expect(errors.map(({ property }) => property).sort()).toEqual(['amount', 'paymentMethodId']);
+    expect(errors.map(({ property }) => property).sort()).toEqual([
+      'amount',
+      'interval',
+      'paymentMethodId',
+    ]);
   });
 });

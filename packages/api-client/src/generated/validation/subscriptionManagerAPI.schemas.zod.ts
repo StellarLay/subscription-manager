@@ -106,6 +106,9 @@ export const createSubscriptionDtoNameMax = 160;
 export const createSubscriptionDtoAmountMin = 0.01;
 export const createSubscriptionDtoAmountMultipleOf = 0.01;
 
+export const createSubscriptionDtoIntervalDefault = 1;
+export const createSubscriptionDtoIntervalMax = 3650;
+
 
 
 export const CreateSubscriptionDto = zod.object({
@@ -113,6 +116,7 @@ export const CreateSubscriptionDto = zod.object({
   "amount": zod.number().min(createSubscriptionDtoAmountMin).multipleOf(createSubscriptionDtoAmountMultipleOf),
   "currency": zod.enum(['RUB', 'USD', 'EUR']),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']),
+  "interval": zod.number().min(1).max(createSubscriptionDtoIntervalMax).default(createSubscriptionDtoIntervalDefault),
   "nextChargeDate": zod.iso.date(),
   "categoryId": zod.uuid().nullish(),
   "paymentMethodId": zod.uuid().nullish()
@@ -126,6 +130,9 @@ export const updateSubscriptionDtoNameMax = 160;
 export const updateSubscriptionDtoAmountMin = 0.01;
 export const updateSubscriptionDtoAmountMultipleOf = 0.01;
 
+export const updateSubscriptionDtoIntervalDefault = 1;
+export const updateSubscriptionDtoIntervalMax = 3650;
+
 
 
 export const UpdateSubscriptionDto = zod.object({
@@ -133,6 +140,7 @@ export const UpdateSubscriptionDto = zod.object({
   "amount": zod.number().min(updateSubscriptionDtoAmountMin).multipleOf(updateSubscriptionDtoAmountMultipleOf).optional(),
   "currency": zod.enum(['RUB', 'USD', 'EUR']).optional(),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']).optional(),
+  "interval": zod.number().min(1).max(updateSubscriptionDtoIntervalMax).default(updateSubscriptionDtoIntervalDefault),
   "nextChargeDate": zod.iso.date().optional(),
   "categoryId": zod.uuid().nullish(),
   "paymentMethodId": zod.uuid().nullish()

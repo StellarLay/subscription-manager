@@ -83,6 +83,26 @@
   background: transparent;
 }
 
+.customInterval {
+  padding: 15px;
+  border: 1px solid rgba(115, 255, 91, 0.16);
+  border-radius: 14px;
+  background: rgba(115, 255, 91, 0.035);
+}
+
+.intervalUnit {
+  color: #788076;
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.customIntervalHint {
+  margin-top: 8px;
+  color: #798178;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
 .reminderHint {
   padding: 13px 15px;
   color: #7e857c;

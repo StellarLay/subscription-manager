@@ -31,7 +31,7 @@ import { notifications } from '@mantine/notifications';
 import { IconAlertCircle, IconCalendar, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
-import { Controller, type DefaultValues, useForm } from 'react-hook-form';
+import { Controller, type DefaultValues, useForm, useWatch } from 'react-hook-form';
 
 import { CreatePaymentMethodModal } from '@/features/payment-methods/create-payment-method/create-payment-method-modal';
 import { CreateCategoryModal } from '@/features/categories/create-category/create-category-modal';
@@ -50,6 +50,7 @@ const billingPeriods = [
   { label: 'Каждый месяц', value: CreateSubscriptionDtoBillingPeriod.MONTH },
   { label: 'Каждый квартал', value: CreateSubscriptionDtoBillingPeriod.QUARTER },
   { label: 'Каждый год', value: CreateSubscriptionDtoBillingPeriod.YEAR },
+  { label: 'Свой интервал в днях', value: CreateSubscriptionDtoBillingPeriod.CUSTOM },
 ];
 
 const currencies = [
@@ -78,6 +79,7 @@ function getDefaultValues(
       amount: Number(subscription.amount),
       currency: subscription.currency,
       billingPeriod: subscription.billingPeriod,
+      interval: subscription.interval,
       nextChargeDate: subscription.nextChargeDate,
       categoryId: subscription.category?.id ?? null,
       paymentMethodId: subscription.paymentMethod?.id ?? null,
@@ -89,6 +91,7 @@ function getDefaultValues(
     amount: undefined,
     currency: CreateSubscriptionDtoCurrency.RUB,
     billingPeriod: CreateSubscriptionDtoBillingPeriod.MONTH,
+    interval: 1,
     nextChargeDate: getTomorrow(),
     categoryId: null,
     paymentMethodId: null,
@@ -136,6 +139,7 @@ export function CreateSubscriptionModal({
     resolver: zodResolver(CreateSubscriptionBody),
     defaultValues: getDefaultValues(subscription),
   });
+  const billingPeriod = useWatch({ control, name: 'billingPeriod' });
 
   useEffect(() => {
     if (!opened) return;
@@ -153,6 +157,10 @@ export function CreateSubscriptionModal({
     try {
       const valuesToSave = {
         ...values,
+        interval:
+          values.billingPeriod === CreateSubscriptionDtoBillingPeriod.CUSTOM
+            ? (values.interval ?? 1)
+            : 1,
         categoryId: values.categoryId ?? null,
         paymentMethodId: values.paymentMethodId ?? null,
       };
@@ -343,6 +351,35 @@ export function CreateSubscriptionModal({
                 )}
               />
             </SimpleGrid>
+
+            {billingPeriod === CreateSubscriptionDtoBillingPeriod.CUSTOM && (
+              <Box className={classes.customInterval}>
+                <Controller
+                  control={control}
+                  name="interval"
+                  render={({ field, fieldState }) => (
+                    <NumberInput
+                      allowDecimal={false}
+                      allowNegative={false}
+                      error={fieldState.error ? 'Укажи от 1 до 3650 дней' : undefined}
+                      label="Интервал между списаниями"
+                      max={3650}
+                      min={1}
+                      onBlur={field.onBlur}
+                      onChange={(value) => field.onChange(value === '' ? undefined : value)}
+                      rightSection={<Text className={classes.intervalUnit}>дней</Text>}
+                      rightSectionWidth={58}
+                      size="md"
+                      value={field.value ?? ''}
+                      withAsterisk
+                    />
+                  )}
+                />
+                <Text className={classes.customIntervalHint}>
+                  После оплаты следующая дата автоматически сдвинется на указанное число дней.
+                </Text>
+              </Box>
+            )}
 
             <Box>
               <Group className={classes.fieldHeader} justify="space-between">

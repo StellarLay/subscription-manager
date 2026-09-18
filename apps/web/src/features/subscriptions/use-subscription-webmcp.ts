@@ -10,6 +10,13 @@ const createSubscriptionInputSchema = {
       enum: ['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM'],
       type: 'string',
     },
+    interval: {
+      default: 1,
+      description: 'Число дней между списаниями для CUSTOM, множитель для остальных периодов.',
+      maximum: 3650,
+      minimum: 1,
+      type: 'integer',
+    },
     nextChargeDate: { format: 'date', type: 'string' },
     categoryId: { format: 'uuid', type: 'string' },
   },

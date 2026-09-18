@@ -18,6 +18,11 @@ export interface CreateSubscriptionDto {
   amount: number;
   currency: CreateSubscriptionDtoCurrency;
   billingPeriod: CreateSubscriptionDtoBillingPeriod;
+  /**
+     * @minimum 1
+     * @maximum 3650
+     */
+  interval?: number;
   nextChargeDate: string;
   /** @nullable */
   categoryId?: string | null;

@@ -3,10 +3,13 @@ import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsDateString,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -41,7 +44,16 @@ export class CreateSubscriptionDto {
   @IsEnum(BillingPeriod)
   billingPeriod!: BillingPeriod;
 
+  @ApiPropertyOptional({ default: 1, example: 30, maximum: 3650, minimum: 1, type: Number })
+  @Type(() => Number)
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3650)
+  interval?: number;
+
   @ApiProperty({ example: '2026-09-15', format: 'date', type: String })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
   @IsDateString({ strict: true, strictSeparator: true })
   nextChargeDate!: string;
 

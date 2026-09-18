@@ -8,6 +8,7 @@ describe('CreateSubscriptionBody', () => {
       amount: 799,
       currency: 'RUB',
       billingPeriod: 'MONTH',
+      interval: 2,
       nextChargeDate: '2026-09-15',
       categoryId: 'e6632ca7-bbed-4892-a8ef-efb824f51aa6',
     });
@@ -25,6 +26,30 @@ describe('CreateSubscriptionBody', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('accepts custom intervals and rejects an interval below one day', () => {
+    expect(
+      CreateSubscriptionBody.safeParse({
+        name: 'Filter replacement',
+        amount: 1590,
+        currency: 'RUB',
+        billingPeriod: 'CUSTOM',
+        interval: 45,
+        nextChargeDate: '2026-10-01',
+      }).success,
+    ).toBe(true);
+
+    expect(
+      CreateSubscriptionBody.safeParse({
+        name: 'Invalid schedule',
+        amount: 100,
+        currency: 'RUB',
+        billingPeriod: 'CUSTOM',
+        interval: 0,
+        nextChargeDate: '2026-10-01',
+      }).success,
+    ).toBe(false);
   });
 
   it('accepts editing fields and clearing a payment method', () => {

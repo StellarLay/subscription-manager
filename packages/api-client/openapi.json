@@ -746,6 +746,13 @@
             ],
             "example": "MONTH"
           },
+          "interval": {
+            "type": "number",
+            "default": 1,
+            "example": 30,
+            "maximum": 3650,
+            "minimum": 1
+          },
           "nextChargeDate": {
             "type": "string",
             "example": "2026-09-15",
@@ -804,6 +811,13 @@
               "CUSTOM"
             ],
             "example": "MONTH"
+          },
+          "interval": {
+            "type": "number",
+            "default": 1,
+            "example": 30,
+            "maximum": 3650,
+            "minimum": 1
           },
           "nextChargeDate": {
             "type": "string",

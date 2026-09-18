@@ -18,6 +18,11 @@ export interface UpdateSubscriptionDto {
   amount?: number;
   currency?: UpdateSubscriptionDtoCurrency;
   billingPeriod?: UpdateSubscriptionDtoBillingPeriod;
+  /**
+     * @minimum 1
+     * @maximum 3650
+     */
+  interval?: number;
   nextChargeDate?: string;
   /** @nullable */
   categoryId?: string | null;

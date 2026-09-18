@@ -72,6 +72,7 @@ export class SubscriptionsService {
         amount: input.amount.toFixed(2),
         currency: input.currency,
         billingPeriod: input.billingPeriod,
+        interval: input.interval ?? 1,
         billingAnchorDay: Number(input.nextChargeDate.slice(-2)),
         nextChargeDate: new Date(`${input.nextChargeDate}T00:00:00.000Z`),
         categoryId: input.categoryId || null,
@@ -103,6 +104,7 @@ export class SubscriptionsService {
     if (input.amount !== undefined) data.amount = input.amount.toFixed(2);
     if (input.currency !== undefined) data.currency = input.currency;
     if (input.billingPeriod !== undefined) data.billingPeriod = input.billingPeriod;
+    if (input.interval !== undefined) data.interval = input.interval;
     if (input.nextChargeDate !== undefined) {
       data.nextChargeDate = new Date(`${input.nextChargeDate}T00:00:00.000Z`);
       data.billingAnchorDay = Number(input.nextChargeDate.slice(-2));
