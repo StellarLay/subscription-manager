@@ -300,6 +300,16 @@
   background: rgba(255, 255, 255, 0.025);
 }
 
+.categoryFilter {
+  width: 178px;
+}
+
+.categoryFilter :global(.mantine-Input-input) {
+  color: #b8beb5;
+  border-color: var(--app-border);
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .listTab {
   padding-inline: 13px;
   color: #7c837a;
@@ -673,6 +683,16 @@
   }
 
   .listTabs {
+    width: 100%;
+  }
+
+  .panelControls {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .categoryFilter {
     width: 100%;
   }
 

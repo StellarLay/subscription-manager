@@ -81,8 +81,8 @@ export function ArchiveSubscriptionModal({
     >
       <Stack gap="lg">
         <Text className={classes.description}>
-          <Text component="span">{subscription?.name}</Text> исчезнет из активного списка. Данные
-          останутся в базе — восстановление добавим следующим этапом.
+          <Text component="span">{subscription?.name}</Text> исчезнет из активного списка, но
+          останется в разделе «Архив». Оттуда подписку можно восстановить в любой момент.
         </Text>
 
         {error && (

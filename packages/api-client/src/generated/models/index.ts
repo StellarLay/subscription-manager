@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './categoryResponseDto';
+export * from './categoryResponseDtoIcon';
+export * from './createCategoryDto';
+export * from './createCategoryDtoIcon';
 export * from './createPaymentMethodDto';
 export * from './createPaymentMethodDtoType';
 export * from './createSubscriptionDto';

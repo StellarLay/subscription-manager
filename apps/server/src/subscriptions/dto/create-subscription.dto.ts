@@ -45,11 +45,10 @@ export class CreateSubscriptionDto {
   @IsDateString({ strict: true, strictSeparator: true })
   nextChargeDate!: string;
 
-  @ApiPropertyOptional({ example: 'Развлечения', maxLength: 64, type: String })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  category?: string;
+  @IsUUID()
+  categoryId?: string | null;
 
   @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   @IsOptional()

@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
+import { CategoryIcon } from '../categories/dto/create-category.dto';
 import { NotificationChannel, Prisma, RecurringPaymentStatus } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CurrentUserService } from '../users/current-user.service';
@@ -8,7 +9,7 @@ import { SubscriptionResponseDto } from './dto/subscription-response.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 
 type SubscriptionRecord = Prisma.RecurringPaymentGetPayload<{
-  include: { paymentMethod: true };
+  include: { category: true; paymentMethod: true };
 }>;
 
 @Injectable()
@@ -25,7 +26,7 @@ export class SubscriptionsService {
         userId,
         status: { not: RecurringPaymentStatus.ARCHIVED },
       },
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
       orderBy: [{ nextChargeDate: 'asc' }, { createdAt: 'desc' }],
     });
 
@@ -39,7 +40,7 @@ export class SubscriptionsService {
         userId,
         status: RecurringPaymentStatus.ARCHIVED,
       },
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
       orderBy: [{ archivedAt: 'desc' }, { createdAt: 'desc' }],
     });
 
@@ -50,6 +51,7 @@ export class SubscriptionsService {
     const userId = await this.currentUser.getId();
 
     await this.ensurePaymentMethodOwned(input.paymentMethodId, userId);
+    await this.ensureCategoryOwned(input.categoryId, userId);
 
     const subscription = await this.prisma.recurringPayment.create({
       data: {
@@ -59,7 +61,7 @@ export class SubscriptionsService {
         currency: input.currency,
         billingPeriod: input.billingPeriod,
         nextChargeDate: new Date(`${input.nextChargeDate}T00:00:00.000Z`),
-        category: input.category?.trim() || null,
+        categoryId: input.categoryId || null,
         paymentMethodId: input.paymentMethodId || null,
         reminderRules: {
           create: {
@@ -69,7 +71,7 @@ export class SubscriptionsService {
           },
         },
       },
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
     });
 
     return this.toResponse(subscription);
@@ -80,6 +82,7 @@ export class SubscriptionsService {
 
     await this.ensureSubscriptionOwned(id, userId);
     await this.ensurePaymentMethodOwned(input.paymentMethodId, userId);
+    await this.ensureCategoryOwned(input.categoryId, userId);
 
     const data: Prisma.RecurringPaymentUncheckedUpdateInput = {};
 
@@ -90,13 +93,13 @@ export class SubscriptionsService {
     if (input.nextChargeDate !== undefined) {
       data.nextChargeDate = new Date(`${input.nextChargeDate}T00:00:00.000Z`);
     }
-    if (input.category !== undefined) data.category = input.category.trim() || null;
+    if (input.categoryId !== undefined) data.categoryId = input.categoryId;
     if (input.paymentMethodId !== undefined) data.paymentMethodId = input.paymentMethodId;
 
     const subscription = await this.prisma.recurringPayment.update({
       where: { id },
       data,
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
     });
 
     return this.toResponse(subscription);
@@ -113,7 +116,7 @@ export class SubscriptionsService {
         archivedAt: new Date(),
         status: RecurringPaymentStatus.ARCHIVED,
       },
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
     });
 
     return this.toResponse(subscription);
@@ -130,7 +133,7 @@ export class SubscriptionsService {
         archivedAt: null,
         status: RecurringPaymentStatus.ACTIVE,
       },
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
     });
 
     return this.toResponse(subscription);
@@ -140,7 +143,7 @@ export class SubscriptionsService {
     const userId = await this.currentUser.getId();
     const subscription = await this.prisma.recurringPayment.findFirst({
       where: { id, userId },
-      include: { paymentMethod: true },
+      include: { category: true, paymentMethod: true },
     });
 
     if (!subscription) {
@@ -206,11 +209,39 @@ export class SubscriptionsService {
     }
   }
 
+  private async ensureCategoryOwned(
+    categoryId: string | null | undefined,
+    userId: string,
+  ): Promise<void> {
+    if (!categoryId) return;
+
+    const category = await this.prisma.category.findFirst({
+      where: {
+        id: categoryId,
+        userId,
+        archivedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (!category) {
+      throw new BadRequestException('Category not found');
+    }
+  }
+
   private toResponse(subscription: SubscriptionRecord): SubscriptionResponseDto {
     return {
       id: subscription.id,
       name: subscription.name,
-      category: subscription.category,
+      category: subscription.category
+        ? {
+            id: subscription.category.id,
+            name: subscription.category.name,
+            color: subscription.category.color,
+            icon: subscription.category.icon as CategoryIcon,
+            createdAt: subscription.category.createdAt.toISOString(),
+          }
+        : null,
       amount: subscription.amount.toFixed(2),
       currency: subscription.currency,
       billingPeriod: subscription.billingPeriod,

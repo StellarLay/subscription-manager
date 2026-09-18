@@ -1,5 +1,6 @@
 import {
   ApiError,
+  type CategoryResponseDto,
   CreateSubscriptionBody,
   CreateSubscriptionDtoBillingPeriod,
   CreateSubscriptionDtoCurrency,
@@ -7,6 +8,7 @@ import {
   type PaymentMethodResponseDto,
   type SubscriptionResponseDto,
   useCreateSubscription,
+  useGetCategories,
   useGetPaymentMethods,
   useUpdateSubscription,
 } from '@subscription-manager/api-client';
@@ -32,6 +34,7 @@ import { useEffect } from 'react';
 import { Controller, type DefaultValues, useForm } from 'react-hook-form';
 
 import { CreatePaymentMethodModal } from '@/features/payment-methods/create-payment-method/create-payment-method-modal';
+import { CreateCategoryModal } from '@/features/categories/create-category/create-category-modal';
 
 import classes from './create-subscription-modal.module.css';
 
@@ -76,7 +79,7 @@ function getDefaultValues(
       currency: subscription.currency,
       billingPeriod: subscription.billingPeriod,
       nextChargeDate: subscription.nextChargeDate,
-      category: subscription.category ?? '',
+      categoryId: subscription.category?.id ?? null,
       paymentMethodId: subscription.paymentMethod?.id ?? null,
     };
   }
@@ -87,7 +90,7 @@ function getDefaultValues(
     currency: CreateSubscriptionDtoCurrency.RUB,
     billingPeriod: CreateSubscriptionDtoBillingPeriod.MONTH,
     nextChargeDate: getTomorrow(),
-    category: '',
+    categoryId: null,
     paymentMethodId: null,
   };
 }
@@ -102,12 +105,19 @@ export function CreateSubscriptionModal({
     getInitialValueInEffect: false,
   });
   const [paymentMethodOpened, paymentMethodModal] = useDisclosure(false);
+  const [categoryOpened, categoryModal] = useDisclosure(false);
   const isEditing = Boolean(subscription);
   const { trigger: createSubscription, isMutating: isCreating } = useCreateSubscription();
   const { trigger: updateSubscription, isMutating: isUpdating } = useUpdateSubscription(
     subscription?.id ?? '',
   );
   const isMutating = isCreating || isUpdating;
+  const {
+    data: categories = [],
+    error: categoriesError,
+    isLoading: categoriesLoading,
+    mutate: refreshCategories,
+  } = useGetCategories();
   const {
     data: paymentMethods = [],
     error: paymentMethodsError,
@@ -143,7 +153,7 @@ export function CreateSubscriptionModal({
     try {
       const valuesToSave = {
         ...values,
-        category: values.category || undefined,
+        categoryId: values.categoryId ?? null,
         paymentMethodId: values.paymentMethodId ?? null,
       };
       const savedSubscription = subscription
@@ -182,6 +192,20 @@ export function CreateSubscriptionModal({
     });
   };
 
+  const handleCategoryCreated = (category: CategoryResponseDto) => {
+    void refreshCategories(
+      (currentCategories) => [
+        ...(currentCategories ?? []).filter(({ id }) => id !== category.id),
+        category,
+      ],
+      { revalidate: false },
+    );
+    setValue('categoryId', category.id, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
   return (
     <>
       <Modal
@@ -193,8 +217,8 @@ export function CreateSubscriptionModal({
           overlay: classes.overlay,
           title: classes.title,
         }}
-        closeOnClickOutside={!isMutating && !paymentMethodOpened}
-        closeOnEscape={!isMutating && !paymentMethodOpened}
+        closeOnClickOutside={!isMutating && !paymentMethodOpened && !categoryOpened}
+        closeOnEscape={!isMutating && !paymentMethodOpened && !categoryOpened}
         fullScreen={isMobile}
         onClose={close}
         opened={opened}
@@ -320,13 +344,50 @@ export function CreateSubscriptionModal({
               />
             </SimpleGrid>
 
-            <TextInput
-              error={errors.category ? 'Не больше 64 символов' : undefined}
-              label="Категория"
-              placeholder="Развлечения, работа, облака..."
-              size="md"
-              {...register('category')}
-            />
+            <Box>
+              <Group className={classes.fieldHeader} justify="space-between">
+                <Text className={classes.fieldLabel}>Категория</Text>
+                <Button
+                  className={classes.fieldAction}
+                  leftSection={<IconPlus size={14} />}
+                  onClick={categoryModal.open}
+                  size="compact-xs"
+                  type="button"
+                  variant="transparent"
+                >
+                  Новая категория
+                </Button>
+              </Group>
+              <Controller
+                control={control}
+                name="categoryId"
+                render={({ field, fieldState }) => (
+                  <Select
+                    allowDeselect
+                    clearable
+                    comboboxProps={{
+                      transitionProps: { duration: 0 },
+                      withinPortal: false,
+                    }}
+                    data={categories.map((category) => ({
+                      label: category.name,
+                      value: category.id,
+                    }))}
+                    disabled={categoriesLoading}
+                    error={
+                      categoriesError ? 'Не удалось загрузить категории' : fieldState.error?.message
+                    }
+                    nothingFoundMessage="Категорий пока нет"
+                    onBlur={field.onBlur}
+                    onChange={(value) => field.onChange(value ?? null)}
+                    placeholder={categoriesLoading ? 'Загрузка...' : 'Без категории'}
+                    searchable
+                    size="md"
+                    value={field.value ?? null}
+                  />
+                )}
+              />
+            </Box>
 
             <Box>
               <Group className={classes.fieldHeader} justify="space-between">
@@ -409,6 +470,11 @@ export function CreateSubscriptionModal({
         onClose={paymentMethodModal.close}
         onCreated={handlePaymentMethodCreated}
         opened={paymentMethodOpened}
+      />
+      <CreateCategoryModal
+        onClose={categoryModal.close}
+        onCreated={handleCategoryCreated}
+        opened={categoryOpened}
       />
     </>
   );

@@ -11,7 +11,7 @@ const createSubscriptionInputSchema = {
       type: 'string',
     },
     nextChargeDate: { format: 'date', type: 'string' },
-    category: { maxLength: 64, type: 'string' },
+    categoryId: { format: 'uuid', type: 'string' },
   },
   required: ['name', 'amount', 'currency', 'billingPeriod', 'nextChargeDate'],
   type: 'object',

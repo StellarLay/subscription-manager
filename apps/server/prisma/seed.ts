@@ -43,6 +43,25 @@ async function main() {
       },
     }));
 
+  const category = await prisma.category.upsert({
+    where: {
+      userId_name: {
+        userId: user.id,
+        name: 'Облака',
+      },
+    },
+    update: {
+      color: '#5bd8ff',
+      icon: 'CLOUD',
+    },
+    create: {
+      userId: user.id,
+      name: 'Облака',
+      color: '#5bd8ff',
+      icon: 'CLOUD',
+    },
+  });
+
   const existingPayment = await prisma.recurringPayment.findFirst({
     where: { userId: user.id, name: 'Облачное хранилище' },
   });
@@ -60,7 +79,7 @@ async function main() {
       userId: user.id,
       paymentMethodId: paymentMethod.id,
       name: 'Облачное хранилище',
-      category: 'Облака',
+      categoryId: category.id,
       amount: '699.00',
       currency: 'RUB',
       billingPeriod: BillingPeriod.MONTH,

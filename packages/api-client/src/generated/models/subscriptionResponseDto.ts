@@ -5,6 +5,7 @@
  * API for subscriptions, recurring payments and reminders
  * OpenAPI spec version: 0.1.0
  */
+import type { CategoryResponseDto } from './categoryResponseDto';
 import type { SubscriptionPaymentMethodDto } from './subscriptionPaymentMethodDto';
 import type { SubscriptionResponseDtoBillingPeriod } from './subscriptionResponseDtoBillingPeriod';
 import type { SubscriptionResponseDtoCurrency } from './subscriptionResponseDtoCurrency';
@@ -14,7 +15,7 @@ export interface SubscriptionResponseDto {
   id: string;
   name: string;
   /** @nullable */
-  category?: string | null;
+  category?: CategoryResponseDto | null;
   /** @pattern ^\d+\.\d{2}$ */
   amount: string;
   currency: SubscriptionResponseDtoCurrency;

@@ -16,6 +16,31 @@ export const HealthResponseDto = zod.object({
 export type HealthResponseDto = zod.input<typeof HealthResponseDto>;
 export type HealthResponseDtoOutput = zod.output<typeof HealthResponseDto>;
 
+export const CategoryResponseDto = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "color": zod.string(),
+  "icon": zod.enum(['CLOUD', 'EDUCATION', 'ENTERTAINMENT', 'FINANCE', 'HEALTH', 'OTHER', 'WORK']),
+  "createdAt": zod.iso.datetime({"offset":true})
+});
+
+export type CategoryResponseDto = zod.input<typeof CategoryResponseDto>;
+export type CategoryResponseDtoOutput = zod.output<typeof CategoryResponseDto>;
+
+export const createCategoryDtoNameMax = 64;
+
+export const createCategoryDtoColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+
+
+export const CreateCategoryDto = zod.object({
+  "name": zod.string().min(1).max(createCategoryDtoNameMax),
+  "color": zod.string().regex(createCategoryDtoColorRegExp),
+  "icon": zod.enum(['CLOUD', 'EDUCATION', 'ENTERTAINMENT', 'FINANCE', 'HEALTH', 'OTHER', 'WORK'])
+});
+
+export type CreateCategoryDto = zod.input<typeof CreateCategoryDto>;
+export type CreateCategoryDtoOutput = zod.output<typeof CreateCategoryDto>;
+
 export const PaymentMethodResponseDto = zod.object({
   "id": zod.uuid(),
   "name": zod.string(),
@@ -61,7 +86,7 @@ export const subscriptionResponseDtoAmountRegExp = new RegExp('^\\d+\\.\\d{2}$')
 export const SubscriptionResponseDto = zod.object({
   "id": zod.uuid(),
   "name": zod.string(),
-  "category": zod.string().nullish(),
+  "category": CategoryResponseDto.nullish(),
   "amount": zod.string().regex(subscriptionResponseDtoAmountRegExp),
   "currency": zod.enum(['RUB', 'USD', 'EUR']),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']),
@@ -79,8 +104,6 @@ export const createSubscriptionDtoNameMax = 160;
 export const createSubscriptionDtoAmountMin = 0.01;
 export const createSubscriptionDtoAmountMultipleOf = 0.01;
 
-export const createSubscriptionDtoCategoryMax = 64;
-
 
 
 export const CreateSubscriptionDto = zod.object({
@@ -89,7 +112,7 @@ export const CreateSubscriptionDto = zod.object({
   "currency": zod.enum(['RUB', 'USD', 'EUR']),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']),
   "nextChargeDate": zod.iso.date(),
-  "category": zod.string().max(createSubscriptionDtoCategoryMax).optional(),
+  "categoryId": zod.uuid().nullish(),
   "paymentMethodId": zod.uuid().nullish()
 });
 
@@ -101,8 +124,6 @@ export const updateSubscriptionDtoNameMax = 160;
 export const updateSubscriptionDtoAmountMin = 0.01;
 export const updateSubscriptionDtoAmountMultipleOf = 0.01;
 
-export const updateSubscriptionDtoCategoryMax = 64;
-
 
 
 export const UpdateSubscriptionDto = zod.object({
@@ -111,7 +132,7 @@ export const UpdateSubscriptionDto = zod.object({
   "currency": zod.enum(['RUB', 'USD', 'EUR']).optional(),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']).optional(),
   "nextChargeDate": zod.iso.date().optional(),
-  "category": zod.string().max(updateSubscriptionDtoCategoryMax).optional(),
+  "categoryId": zod.uuid().nullish(),
   "paymentMethodId": zod.uuid().nullish()
 });
 

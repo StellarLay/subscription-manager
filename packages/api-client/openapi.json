@@ -23,6 +23,61 @@
         ]
       }
     },
+    "/api/categories": {
+      "get": {
+        "operationId": "getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get current user categories",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "post": {
+        "operationId": "createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a category",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
     "/api/payment-methods": {
       "get": {
         "operationId": "getPaymentMethods",
@@ -334,6 +389,81 @@
           "timestamp"
         ]
       },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Развлечения"
+          },
+          "color": {
+            "type": "string",
+            "example": "#ff9b66"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "CLOUD",
+              "EDUCATION",
+              "ENTERTAINMENT",
+              "FINANCE",
+              "HEALTH",
+              "OTHER",
+              "WORK"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-17T12:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "icon",
+          "createdAt"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Развлечения",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "color": {
+            "type": "string",
+            "example": "#ff9b66",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "CLOUD",
+              "EDUCATION",
+              "ENTERTAINMENT",
+              "FINANCE",
+              "HEALTH",
+              "OTHER",
+              "WORK"
+            ],
+            "example": "ENTERTAINMENT"
+          }
+        },
+        "required": [
+          "name",
+          "color",
+          "icon"
+        ]
+      },
       "PaymentMethodResponseDto": {
         "type": "object",
         "properties": {
@@ -461,9 +591,13 @@
             "example": "YouTube Premium"
           },
           "category": {
-            "type": "string",
-            "example": "Развлечения",
-            "nullable": true
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CategoryResponseDto"
+              }
+            ]
           },
           "amount": {
             "type": "string",
@@ -569,10 +703,10 @@
             "example": "2026-09-15",
             "format": "date"
           },
-          "category": {
+          "categoryId": {
             "type": "string",
-            "example": "Развлечения",
-            "maxLength": 64
+            "format": "uuid",
+            "nullable": true
           },
           "paymentMethodId": {
             "type": "string",
@@ -628,10 +762,10 @@
             "example": "2026-09-15",
             "format": "date"
           },
-          "category": {
+          "categoryId": {
             "type": "string",
-            "example": "Развлечения",
-            "maxLength": 64
+            "format": "uuid",
+            "nullable": true
           },
           "paymentMethodId": {
             "type": "string",

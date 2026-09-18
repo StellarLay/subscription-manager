@@ -9,7 +9,7 @@ describe('CreateSubscriptionBody', () => {
       currency: 'RUB',
       billingPeriod: 'MONTH',
       nextChargeDate: '2026-09-15',
-      category: 'Развлечения',
+      categoryId: 'e6632ca7-bbed-4892-a8ef-efb824f51aa6',
     });
 
     expect(result.success).toBe(true);

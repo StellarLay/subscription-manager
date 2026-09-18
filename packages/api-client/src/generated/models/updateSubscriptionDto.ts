@@ -19,8 +19,8 @@ export interface UpdateSubscriptionDto {
   currency?: UpdateSubscriptionDtoCurrency;
   billingPeriod?: UpdateSubscriptionDtoBillingPeriod;
   nextChargeDate?: string;
-  /** @maxLength 64 */
-  category?: string;
+  /** @nullable */
+  categoryId?: string | null;
   /** @nullable */
   paymentMethodId?: string | null;
 }

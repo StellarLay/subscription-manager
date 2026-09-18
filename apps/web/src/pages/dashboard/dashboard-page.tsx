@@ -2,6 +2,7 @@ import {
   ApiError,
   restoreSubscription,
   type SubscriptionResponseDto,
+  useGetCategories,
   useGetArchivedSubscriptions,
   useGetHealth,
   useGetSubscriptions,
@@ -16,6 +17,7 @@ import {
   Group,
   Loader,
   Menu,
+  Select,
   Skeleton,
   Stack,
   Text,
@@ -34,12 +36,14 @@ import {
   IconReceipt,
   IconRefresh,
   IconRestore,
+  IconTag,
   IconTrash,
   IconWallet,
 } from '@tabler/icons-react';
 import { lazy, Suspense, useCallback, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
+import { CategoryIcon } from '@/features/categories/category-icon';
 
 import classes from './dashboard-page.module.css';
 
@@ -106,8 +110,19 @@ function sortByChargeDate(subscriptions: SubscriptionResponseDto[]) {
   );
 }
 
+function getCategoryTextColor(color: string): string {
+  const hex = color.replace('#', '');
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+  const luminance = red * 0.299 + green * 0.587 + blue * 0.114;
+
+  return luminance > 150 ? '#071006' : '#f5f7f4';
+}
+
 export function DashboardPage() {
   const [listMode, setListMode] = useState<'active' | 'archive'>('active');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [createOpened, createModal] = useDisclosure(false);
   const [editOpened, editModal] = useDisclosure(false);
   const [archiveOpened, archiveModal] = useDisclosure(false);
@@ -122,6 +137,7 @@ export function DashboardPage() {
     null,
   );
   const { data: health, error: healthError, isLoading: healthLoading } = useGetHealth();
+  const { data: categories = [], isLoading: categoriesLoading } = useGetCategories();
   const {
     data: subscriptions = [],
     error: subscriptionsError,
@@ -220,7 +236,12 @@ export function DashboardPage() {
   useSubscriptionWebMcp(handleSubscriptionCreated);
 
   const isArchiveMode = listMode === 'archive';
-  const displayedSubscriptions = isArchiveMode ? archivedSubscriptions : subscriptions;
+  const unfilteredDisplayedSubscriptions = isArchiveMode ? archivedSubscriptions : subscriptions;
+  const displayedSubscriptions = categoryFilter
+    ? unfilteredDisplayedSubscriptions.filter(
+        (subscription) => subscription.category?.id === categoryFilter,
+      )
+    : unfilteredDisplayedSubscriptions;
   const displayedSubscriptionsLoading = isArchiveMode
     ? archivedSubscriptionsLoading
     : subscriptionsLoading;
@@ -367,27 +388,45 @@ export function DashboardPage() {
                       {displayedSubscriptions.length}
                     </Badge>
                   </Group>
-                  <Group className={classes.listTabs} gap={4}>
-                    <Button
-                      className={classes.listTab}
-                      data-active={!isArchiveMode || undefined}
-                      onClick={() => setListMode('active')}
-                      radius="xl"
-                      size="compact-sm"
-                      variant="transparent"
-                    >
-                      Активные
-                    </Button>
-                    <Button
-                      className={classes.listTab}
-                      data-active={isArchiveMode || undefined}
-                      onClick={() => setListMode('archive')}
-                      radius="xl"
-                      size="compact-sm"
-                      variant="transparent"
-                    >
-                      Архив
-                    </Button>
+                  <Group className={classes.panelControls} gap={8}>
+                    <Select
+                      allowDeselect
+                      className={classes.categoryFilter}
+                      clearable
+                      comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                      data={categories.map((category) => ({
+                        label: category.name,
+                        value: category.id,
+                      }))}
+                      disabled={categoriesLoading}
+                      onChange={setCategoryFilter}
+                      placeholder="Все категории"
+                      searchable
+                      size="xs"
+                      value={categoryFilter}
+                    />
+                    <Group className={classes.listTabs} gap={4}>
+                      <Button
+                        className={classes.listTab}
+                        data-active={!isArchiveMode || undefined}
+                        onClick={() => setListMode('active')}
+                        radius="xl"
+                        size="compact-sm"
+                        variant="transparent"
+                      >
+                        Активные
+                      </Button>
+                      <Button
+                        className={classes.listTab}
+                        data-active={isArchiveMode || undefined}
+                        onClick={() => setListMode('archive')}
+                        radius="xl"
+                        size="compact-sm"
+                        variant="transparent"
+                      >
+                        Архив
+                      </Button>
+                    </Group>
                   </Group>
                 </Group>
 
@@ -426,21 +465,39 @@ export function DashboardPage() {
                   displayedSubscriptions.length === 0 && (
                     <Box className={classes.emptyState}>
                       <Box className={classes.emptyIcon}>
-                        {isArchiveMode ? (
+                        {categoryFilter ? (
+                          <IconTag size={27} stroke={1.6} />
+                        ) : isArchiveMode ? (
                           <IconArchive size={27} stroke={1.6} />
                         ) : (
                           <IconReceipt size={27} stroke={1.6} />
                         )}
                       </Box>
                       <Title order={3}>
-                        {isArchiveMode ? 'Архив пока пуст' : 'Здесь появится твоя первая подписка'}
+                        {categoryFilter
+                          ? 'В этой категории пока пусто'
+                          : isArchiveMode
+                            ? 'Архив пока пуст'
+                            : 'Здесь появится твоя первая подписка'}
                       </Title>
                       <Text>
-                        {isArchiveMode
-                          ? 'Здесь будут храниться отключённые подписки — их можно восстановить или удалить окончательно.'
-                          : 'Добавь сервис, дату и сумму. Мы соберём календарь списаний и напомним заранее.'}
+                        {categoryFilter
+                          ? 'Сбрось фильтр или выбери другую категорию, чтобы увидеть остальные подписки.'
+                          : isArchiveMode
+                            ? 'Здесь будут храниться отключённые подписки — их можно восстановить или удалить окончательно.'
+                            : 'Добавь сервис, дату и сумму. Мы соберём календарь списаний и напомним заранее.'}
                       </Text>
-                      {!isArchiveMode && (
+                      {categoryFilter ? (
+                        <Button
+                          className={classes.emptyButton}
+                          leftSection={<IconRefresh size={17} />}
+                          onClick={() => setCategoryFilter(null)}
+                          radius="xl"
+                          variant="default"
+                        >
+                          Сбросить фильтр
+                        </Button>
+                      ) : !isArchiveMode ? (
                         <Button
                           className={classes.emptyButton}
                           leftSection={<IconPlus size={17} />}
@@ -450,7 +507,7 @@ export function DashboardPage() {
                         >
                           Добавить первую
                         </Button>
-                      )}
+                      ) : null}
                     </Box>
                   )}
 
@@ -464,13 +521,28 @@ export function DashboardPage() {
                           data-archived={isArchiveMode || undefined}
                           key={subscription.id}
                         >
-                          <Box className={classes.subscriptionMark} data-tone={index % 4}>
-                            {subscription.name.slice(0, 1).toLocaleUpperCase('ru-RU')}
+                          <Box
+                            className={classes.subscriptionMark}
+                            data-tone={subscription.category ? undefined : index % 4}
+                            style={
+                              !isArchiveMode && subscription.category
+                                ? {
+                                    background: subscription.category.color,
+                                    color: getCategoryTextColor(subscription.category.color),
+                                  }
+                                : undefined
+                            }
+                          >
+                            {subscription.category ? (
+                              <CategoryIcon icon={subscription.category.icon} size={19} />
+                            ) : (
+                              subscription.name.slice(0, 1).toLocaleUpperCase('ru-RU')
+                            )}
                           </Box>
                           <Box className={classes.subscriptionInfo}>
                             <Text className={classes.subscriptionName}>{subscription.name}</Text>
                             <Text className={classes.subscriptionMeta}>
-                              {subscription.category || 'Без категории'} ·{' '}
+                              {subscription.category?.name || 'Без категории'} ·{' '}
                               {subscription.paymentMethod
                                 ? `${subscription.paymentMethod.name}${
                                     subscription.paymentMethod.lastFour

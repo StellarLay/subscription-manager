@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+import { CategoryResponseDto } from '../../categories/dto/category-response.dto';
 import {
   BillingPeriod,
   PaymentMethodType,
@@ -30,8 +31,8 @@ export class SubscriptionResponseDto {
   @ApiProperty({ example: 'YouTube Premium', type: String })
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Развлечения', nullable: true, type: String })
-  category!: string | null;
+  @ApiPropertyOptional({ nullable: true, type: () => CategoryResponseDto })
+  category!: CategoryResponseDto | null;
 
   @ApiProperty({ example: '799.00', pattern: '^\\d+\\.\\d{2}$', type: String })
   amount!: string;
