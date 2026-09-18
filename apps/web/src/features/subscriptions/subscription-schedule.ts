@@ -1,6 +1,10 @@
 import type { SubscriptionResponseDto } from '@subscription-manager/api-client';
 
 type BillingPeriod = SubscriptionResponseDto['billingPeriod'];
+type SubscriptionCost = Pick<
+  SubscriptionResponseDto,
+  'amount' | 'billingPeriod' | 'currency' | 'interval'
+>;
 
 const singlePeriodLabels: Record<BillingPeriod, string> = {
   WEEK: 'в неделю',
@@ -56,4 +60,24 @@ export function getMonthlyBillingFactor(period: BillingPeriod, interval: number)
     case 'CUSTOM':
       return 365.2425 / 12 / normalizedInterval;
   }
+}
+
+export function calculateMonthlyRubTotal(
+  subscriptions: SubscriptionCost[],
+  rates: Record<string, number>,
+): number | null {
+  let total = 0;
+
+  for (const subscription of subscriptions) {
+    const rate = rates[subscription.currency];
+
+    if (rate === undefined || !Number.isFinite(rate) || rate <= 0) return null;
+
+    total +=
+      Number(subscription.amount) *
+      rate *
+      getMonthlyBillingFactor(subscription.billingPeriod, subscription.interval);
+  }
+
+  return total;
 }

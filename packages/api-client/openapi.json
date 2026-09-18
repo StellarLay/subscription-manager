@@ -1,6 +1,28 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/exchange-rates": {
+      "get": {
+        "operationId": "getExchangeRates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeRatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get RUB exchange rates from the Bank of Russia",
+        "tags": [
+          "Exchange rates"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "getHealth",
@@ -402,6 +424,52 @@
   "servers": [],
   "components": {
     "schemas": {
+      "ExchangeRatesResponseDto": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string",
+            "example": "RUB"
+          },
+          "rates": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "example": {
+              "EUR": 99.3304,
+              "RUB": 1,
+              "USD": 84.5093
+            }
+          },
+          "effectiveDate": {
+            "type": "string",
+            "example": "2026-09-18",
+            "format": "date"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "example": "2026-09-18T09:00:00.000Z",
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean",
+            "example": false
+          },
+          "source": {
+            "type": "string",
+            "example": "CBR"
+          }
+        },
+        "required": [
+          "baseCurrency",
+          "rates",
+          "effectiveDate",
+          "fetchedAt",
+          "stale",
+          "source"
+        ]
+      },
       "HealthResponseDto": {
         "type": "object",
         "properties": {

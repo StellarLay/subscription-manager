@@ -7,6 +7,18 @@
  */
 import * as zod from 'zod';
 
+export const ExchangeRatesResponseDto = zod.object({
+  "baseCurrency": zod.string(),
+  "rates": zod.record(zod.string(), zod.number()),
+  "effectiveDate": zod.iso.date(),
+  "fetchedAt": zod.iso.datetime({"offset":true}),
+  "stale": zod.boolean(),
+  "source": zod.string()
+});
+
+export type ExchangeRatesResponseDto = zod.input<typeof ExchangeRatesResponseDto>;
+export type ExchangeRatesResponseDtoOutput = zod.output<typeof ExchangeRatesResponseDto>;
+
 export const HealthResponseDto = zod.object({
   "status": zod.enum(['ok']),
   "database": zod.enum(['connected']),

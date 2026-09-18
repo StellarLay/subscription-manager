@@ -5,6 +5,7 @@ import {
   type SubscriptionResponseDto,
   useGetCategories,
   useGetArchivedSubscriptions,
+  useGetExchangeRates,
   useGetHealth,
   useGetPaymentMethods,
   useGetSubscriptions,
@@ -51,8 +52,8 @@ import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
 import {
+  calculateMonthlyRubTotal,
   formatSubscriptionPeriod,
-  getMonthlyBillingFactor,
 } from '@/features/subscriptions/subscription-schedule';
 import { CategoryIcon } from '@/features/categories/category-icon';
 import { UpcomingPaymentsPanel } from '@/widgets/upcoming-payments/upcoming-payments-panel';
@@ -110,6 +111,13 @@ function formatChargeDate(value: string): string {
   }).format(new Date(`${value}T00:00:00`));
 }
 
+function formatRateDate(value: string): string {
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(`${value}T00:00:00`));
+}
+
 function sortByChargeDate(subscriptions: SubscriptionResponseDto[]) {
   return [...subscriptions].sort((left, right) =>
     left.nextChargeDate.localeCompare(right.nextChargeDate),
@@ -147,6 +155,13 @@ export function DashboardPage() {
     null,
   );
   const { data: health, error: healthError, isLoading: healthLoading } = useGetHealth();
+  const {
+    data: exchangeRates,
+    error: exchangeRatesError,
+    isLoading: exchangeRatesLoading,
+  } = useGetExchangeRates({
+    swr: { dedupingInterval: 6 * 60 * 60 * 1000, revalidateOnFocus: false },
+  });
   const { data: categories = [], isLoading: categoriesLoading } = useGetCategories();
   const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useGetPaymentMethods();
   const {
@@ -311,15 +326,21 @@ export function DashboardPage() {
   const upcomingDays = upcomingSubscription
     ? getDaysUntilCharge(upcomingSubscription.nextChargeDate, new Date())
     : null;
-  const monthlyRub = activeSubscriptions
-    .filter(({ currency }) => currency === 'RUB')
-    .reduce(
-      (total, subscription) =>
-        total +
-        Number(subscription.amount) *
-          getMonthlyBillingFactor(subscription.billingPeriod, subscription.interval),
-      0,
-    );
+  const hasForeignCurrencies = activeSubscriptions.some(({ currency }) => currency !== 'RUB');
+  const monthlyRub = calculateMonthlyRubTotal(
+    activeSubscriptions,
+    exchangeRates?.rates ?? { RUB: 1 },
+  );
+  const ratesPending = hasForeignCurrencies && exchangeRatesLoading;
+  const ratesUnavailable =
+    hasForeignCurrencies && (Boolean(exchangeRatesError) || monthlyRub === null);
+  const monthlyCostHint = !activeSubscriptions.length
+    ? 'Нет запланированных списаний'
+    : ratesUnavailable
+      ? 'Не удалось загрузить курсы валют'
+      : hasForeignCurrencies && exchangeRates
+        ? `${exchangeRates.stale ? 'Последний доступный' : 'Курс ЦБ РФ'} · ${formatRateDate(exchangeRates.effectiveDate)}`
+        : `Прогноз по ${activeSubscriptions.length} активным подпискам`;
 
   return (
     <>
@@ -398,7 +419,11 @@ export function DashboardPage() {
                     <Box>
                       <Text className={classes.metricLabel}>Расходы в этом месяце</Text>
                       <Text className={classes.primaryValue}>
-                        {subscriptionsLoading ? '···' : formatMoney(monthlyRub, 'RUB')}
+                        {subscriptionsLoading || ratesPending
+                          ? '···'
+                          : monthlyRub === null
+                            ? '—'
+                            : formatMoney(monthlyRub, 'RUB')}
                       </Text>
                     </Box>
                     <Box className={classes.metricIcon}>
@@ -407,11 +432,7 @@ export function DashboardPage() {
                   </Group>
                   <Group className={classes.metricFooter} gap={8}>
                     <span />
-                    <Text>
-                      {activeSubscriptions.length
-                        ? `Прогноз по ${activeSubscriptions.length} активным подпискам`
-                        : 'Нет запланированных списаний'}
-                    </Text>
+                    <Text>{monthlyCostHint}</Text>
                   </Group>
                 </Box>
 
