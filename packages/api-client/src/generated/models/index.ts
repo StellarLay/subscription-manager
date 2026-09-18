@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './authUserResponseDto';
 export * from './categoryResponseDto';
 export * from './categoryResponseDtoIcon';
 export * from './createCategoryDto';
@@ -29,6 +30,7 @@ export * from './subscriptionResponseDto';
 export * from './subscriptionResponseDtoBillingPeriod';
 export * from './subscriptionResponseDtoCurrency';
 export * from './subscriptionResponseDtoStatus';
+export * from './telegramAuthDto';
 export * from './updateSubscriptionDto';
 export * from './updateSubscriptionDtoBillingPeriod';
 export * from './updateSubscriptionDtoCurrency';

@@ -1,10 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../auth/public.decorator';
 import { ExchangeRatesResponseDto } from './dto/exchange-rates-response.dto';
 import { ExchangeRatesService } from './exchange-rates.service';
 
 @ApiTags('Exchange rates')
+@Public()
 @Controller('exchange-rates')
 export class ExchangeRatesController {
   constructor(private readonly exchangeRatesService: ExchangeRatesService) {}

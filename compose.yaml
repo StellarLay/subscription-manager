@@ -39,6 +39,11 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-subscription_manager}:${POSTGRES_PASSWORD:-subscription_manager}@postgres:5432/${POSTGRES_DB:-subscription_manager}?schema=public
       API_HOST: 0.0.0.0
       API_PORT: 3000
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      TELEGRAM_AUTH_DEV_BYPASS: ${TELEGRAM_AUTH_DEV_BYPASS:-true}
+      TELEGRAM_AUTH_MAX_AGE_SECONDS: ${TELEGRAM_AUTH_MAX_AGE_SECONDS:-600}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       WEB_ORIGIN: http://localhost:5173
     ports:
       - '${API_EXPOSE_PORT:-3002}:3000'

@@ -7,6 +7,22 @@
  */
 import * as zod from 'zod';
 
+export const TelegramAuthDto = zod.object({
+  "initData": zod.string().describe('Raw Telegram.WebApp.initData value')
+});
+
+export type TelegramAuthDto = zod.input<typeof TelegramAuthDto>;
+export type TelegramAuthDtoOutput = zod.output<typeof TelegramAuthDto>;
+
+export const AuthUserResponseDto = zod.object({
+  "id": zod.uuid(),
+  "displayName": zod.string().nullish(),
+  "telegramId": zod.string().nullish()
+});
+
+export type AuthUserResponseDto = zod.input<typeof AuthUserResponseDto>;
+export type AuthUserResponseDtoOutput = zod.output<typeof AuthUserResponseDto>;
+
 export const ExchangeRatesResponseDto = zod.object({
   "baseCurrency": zod.string(),
   "rates": zod.record(zod.string(), zod.number()),

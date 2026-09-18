@@ -1,24 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 
-import { PrismaService } from '../database/prisma.service';
+import type { AuthenticatedRequest } from '../auth/auth-request';
 
-const DEMO_USER_EMAIL = 'demo@subscription-manager.local';
-
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class CurrentUserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(REQUEST) private readonly request: AuthenticatedRequest) {}
 
-  async getId(): Promise<string> {
-    const user = await this.prisma.user.upsert({
-      where: { email: DEMO_USER_EMAIL },
-      update: {},
-      create: {
-        email: DEMO_USER_EMAIL,
-        displayName: 'Demo User',
-      },
-      select: { id: true },
-    });
+  getId(): Promise<string> {
+    const userId = this.request.auth?.userId;
+    if (!userId) throw new UnauthorizedException('Authentication required');
 
-    return user.id;
+    return Promise.resolve(userId);
   }
 }

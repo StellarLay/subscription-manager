@@ -57,7 +57,7 @@ enum NotificationDeliveryStatus {
 
 model User {
   id             String             @id @default(uuid()) @db.Uuid
-  email          String             @unique @db.VarChar(320)
+  email          String?            @unique @db.VarChar(320)
   passwordHash   String?            @db.VarChar(255)
   displayName    String?            @db.VarChar(120)
   timezone       String             @default("Europe/Moscow") @db.VarChar(64)

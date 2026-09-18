@@ -1,0 +1,47 @@
+.screen {
+  min-height: 100dvh;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(115, 255, 91, 0.09), transparent 32%), #07090d;
+}
+
+.card {
+  width: min(100%, 420px);
+  padding: 30px;
+  border: 1px solid var(--app-border);
+  border-radius: 26px;
+  background: rgba(13, 16, 22, 0.94);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+}
+
+.mark {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin-inline: auto;
+  place-items: center;
+  color: #071006;
+  border-radius: 16px;
+  background: var(--app-signal);
+  box-shadow: 0 14px 38px rgba(115, 255, 91, 0.17);
+}
+
+.title {
+  color: var(--app-text);
+  font-size: 1.35rem;
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  text-align: center;
+}
+
+.description {
+  color: var(--app-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.retry {
+  color: #071006;
+  font-weight: 750;
+}
