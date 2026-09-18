@@ -83,6 +83,7 @@ async function main() {
       amount: '699.00',
       currency: 'RUB',
       billingPeriod: BillingPeriod.MONTH,
+      billingAnchorDay: nextChargeDate.getUTCDate(),
       nextChargeDate,
       reminderRules: {
         create: {

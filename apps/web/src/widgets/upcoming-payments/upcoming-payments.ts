@@ -14,6 +14,10 @@ const dayInMilliseconds = 24 * 60 * 60 * 1000;
 function dateKeyToDayNumber(dateKey: string): number {
   const [year, month, day] = dateKey.split('-').map(Number);
 
+  if (year === undefined || month === undefined || day === undefined) {
+    throw new Error(`Invalid calendar date: ${dateKey}`);
+  }
+
   return Math.floor(Date.UTC(year, month - 1, day) / dayInMilliseconds);
 }
 

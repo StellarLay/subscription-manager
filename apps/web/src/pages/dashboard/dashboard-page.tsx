@@ -1,5 +1,6 @@
 import {
   ApiError,
+  markSubscriptionPaid,
   restoreSubscription,
   type SubscriptionResponseDto,
   useGetCategories,
@@ -148,6 +149,7 @@ export function DashboardPage() {
   const [archiveOpened, archiveModal] = useDisclosure(false);
   const [deleteOpened, deleteModal] = useDisclosure(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
   const [editingSubscription, setEditingSubscription] = useState<SubscriptionResponseDto | null>(
     null,
   );
@@ -252,6 +254,41 @@ export function DashboardPage() {
       });
     } finally {
       setRestoringId(null);
+    }
+  };
+  const markAsPaid = async (subscription: SubscriptionResponseDto) => {
+    setMarkingPaidId(subscription.id);
+
+    try {
+      const updatedSubscription = await markSubscriptionPaid(subscription.id, {
+        scheduledFor: subscription.nextChargeDate,
+      });
+
+      void refreshSubscriptions(
+        (currentSubscriptions) =>
+          currentSubscriptions?.map((currentSubscription) =>
+            currentSubscription.id === updatedSubscription.id
+              ? updatedSubscription
+              : currentSubscription,
+          ),
+        { revalidate: true },
+      );
+      notifications.show({
+        color: 'signal',
+        message: `Следующая дата — ${formatChargeDate(updatedSubscription.nextChargeDate)}`,
+        title: `${updatedSubscription.name} оплачена`,
+      });
+    } catch (markPaidError) {
+      notifications.show({
+        color: 'red',
+        message:
+          markPaidError instanceof ApiError
+            ? markPaidError.message
+            : 'Не удалось отметить подписку оплаченной.',
+        title: 'Ошибка',
+      });
+    } finally {
+      setMarkingPaidId(null);
     }
   };
   useSubscriptionWebMcp(handleSubscriptionCreated);
@@ -423,6 +460,8 @@ export function DashboardPage() {
               <UpcomingPaymentsPanel
                 hasError={Boolean(subscriptionsError)}
                 isLoading={subscriptionsLoading}
+                markingId={markingPaidId}
+                onMarkPaid={(subscription) => void markAsPaid(subscription)}
                 onRetry={() => void refreshSubscriptions()}
                 onSelect={openEditModal}
                 subscriptions={activeSubscriptions}

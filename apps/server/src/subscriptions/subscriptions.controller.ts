@@ -9,6 +9,7 @@ import {
 } from '@nestjs/swagger';
 
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { MarkSubscriptionPaidDto } from './dto/mark-subscription-paid.dto';
 import { SubscriptionResponseDto } from './dto/subscription-response.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import { SubscriptionsService } from './subscriptions.service';
@@ -53,6 +54,18 @@ export class SubscriptionsController {
     @Body() input: UpdateSubscriptionDto,
   ): Promise<SubscriptionResponseDto> {
     return this.subscriptionsService.update(id, input);
+  }
+
+  @Post(':id/mark-paid')
+  @ApiOperation({ operationId: 'markSubscriptionPaid', summary: 'Mark the current charge as paid' })
+  @ApiParam({ format: 'uuid', name: 'id', type: String })
+  @ApiBody({ type: MarkSubscriptionPaidDto })
+  @ApiOkResponse({ type: SubscriptionResponseDto })
+  markSubscriptionPaid(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() input: MarkSubscriptionPaidDto,
+  ): Promise<SubscriptionResponseDto> {
+    return this.subscriptionsService.markPaid(id, input);
   }
 
   @Patch(':id/archive')

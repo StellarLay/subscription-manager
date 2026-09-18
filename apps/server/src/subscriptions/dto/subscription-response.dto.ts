@@ -43,6 +43,9 @@ export class SubscriptionResponseDto {
   @ApiProperty({ enum: BillingPeriod, type: String })
   billingPeriod!: BillingPeriod;
 
+  @ApiProperty({ example: 1, minimum: 1, type: Number })
+  interval!: number;
+
   @ApiProperty({ example: '2026-09-15', format: 'date', type: String })
   nextChargeDate!: string;
 

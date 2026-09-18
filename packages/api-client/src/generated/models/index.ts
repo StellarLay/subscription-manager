@@ -18,6 +18,7 @@ export * from './createSubscriptionDtoCurrency';
 export * from './healthResponseDto';
 export * from './healthResponseDtoDatabase';
 export * from './healthResponseDtoStatus';
+export * from './markSubscriptionPaidDto';
 export * from './paymentMethodResponseDto';
 export * from './paymentMethodResponseDtoType';
 export * from './subscriptionPaymentMethodDto';

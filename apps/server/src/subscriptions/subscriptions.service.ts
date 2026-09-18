@@ -1,10 +1,22 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { calculateNextChargeDate } from '@subscription-manager/domain';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { CategoryIcon } from '../categories/dto/create-category.dto';
-import { NotificationChannel, Prisma, RecurringPaymentStatus } from '../generated/prisma/client';
+import {
+  NotificationChannel,
+  PaymentOccurrenceStatus,
+  Prisma,
+  RecurringPaymentStatus,
+} from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CurrentUserService } from '../users/current-user.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { MarkSubscriptionPaidDto } from './dto/mark-subscription-paid.dto';
 import { SubscriptionResponseDto } from './dto/subscription-response.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 
@@ -60,6 +72,7 @@ export class SubscriptionsService {
         amount: input.amount.toFixed(2),
         currency: input.currency,
         billingPeriod: input.billingPeriod,
+        billingAnchorDay: Number(input.nextChargeDate.slice(-2)),
         nextChargeDate: new Date(`${input.nextChargeDate}T00:00:00.000Z`),
         categoryId: input.categoryId || null,
         paymentMethodId: input.paymentMethodId || null,
@@ -92,6 +105,7 @@ export class SubscriptionsService {
     if (input.billingPeriod !== undefined) data.billingPeriod = input.billingPeriod;
     if (input.nextChargeDate !== undefined) {
       data.nextChargeDate = new Date(`${input.nextChargeDate}T00:00:00.000Z`);
+      data.billingAnchorDay = Number(input.nextChargeDate.slice(-2));
     }
     if (input.categoryId !== undefined) data.categoryId = input.categoryId;
     if (input.paymentMethodId !== undefined) data.paymentMethodId = input.paymentMethodId;
@@ -103,6 +117,86 @@ export class SubscriptionsService {
     });
 
     return this.toResponse(subscription);
+  }
+
+  async markPaid(id: string, input: MarkSubscriptionPaidDto): Promise<SubscriptionResponseDto> {
+    const userId = await this.currentUser.getId();
+
+    return this.prisma.$transaction(async (transaction) => {
+      const subscription = await transaction.recurringPayment.findFirst({
+        where: {
+          id,
+          userId,
+          status: RecurringPaymentStatus.ACTIVE,
+        },
+        include: { category: true, paymentMethod: true },
+      });
+
+      if (!subscription) {
+        throw new NotFoundException('Active subscription not found');
+      }
+
+      const currentChargeDate = subscription.nextChargeDate.toISOString().slice(0, 10);
+
+      if (input.scheduledFor !== currentChargeDate) {
+        const existingOccurrence = await transaction.paymentOccurrence.findUnique({
+          where: {
+            recurringPaymentId_scheduledFor: {
+              recurringPaymentId: subscription.id,
+              scheduledFor: new Date(`${input.scheduledFor}T00:00:00.000Z`),
+            },
+          },
+        });
+
+        if (existingOccurrence?.status === PaymentOccurrenceStatus.PAID) {
+          return this.toResponse(subscription);
+        }
+
+        throw new ConflictException('Subscription charge date has changed');
+      }
+
+      const paidAt = new Date();
+      const scheduledFor = new Date(`${currentChargeDate}T00:00:00.000Z`);
+      const nextChargeDate = calculateNextChargeDate({
+        currentDate: currentChargeDate,
+        billingPeriod: subscription.billingPeriod,
+        interval: subscription.interval,
+        anchorDay: subscription.billingAnchorDay,
+      });
+
+      await transaction.paymentOccurrence.upsert({
+        where: {
+          recurringPaymentId_scheduledFor: {
+            recurringPaymentId: subscription.id,
+            scheduledFor,
+          },
+        },
+        create: {
+          recurringPaymentId: subscription.id,
+          scheduledFor,
+          amount: subscription.amount,
+          currency: subscription.currency,
+          status: PaymentOccurrenceStatus.PAID,
+          paidAt,
+        },
+        update: {
+          amount: subscription.amount,
+          currency: subscription.currency,
+          status: PaymentOccurrenceStatus.PAID,
+          paidAt,
+        },
+      });
+
+      const updatedSubscription = await transaction.recurringPayment.update({
+        where: { id: subscription.id },
+        data: {
+          nextChargeDate: new Date(`${nextChargeDate}T00:00:00.000Z`),
+        },
+        include: { category: true, paymentMethod: true },
+      });
+
+      return this.toResponse(updatedSubscription);
+    });
   }
 
   async archive(id: string): Promise<SubscriptionResponseDto> {
@@ -245,6 +339,7 @@ export class SubscriptionsService {
       amount: subscription.amount.toFixed(2),
       currency: subscription.currency,
       billingPeriod: subscription.billingPeriod,
+      interval: subscription.interval,
       nextChargeDate: subscription.nextChargeDate.toISOString().slice(0, 10),
       status: subscription.status,
       paymentMethod: subscription.paymentMethod

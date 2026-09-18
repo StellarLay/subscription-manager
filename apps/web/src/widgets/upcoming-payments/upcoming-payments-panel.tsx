@@ -1,8 +1,22 @@
 import type { SubscriptionResponseDto } from '@subscription-manager/api-client';
-import { Alert, Badge, Box, Button, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
+import {
+  ActionIcon,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Group,
+  Loader,
+  Skeleton,
+  Stack,
+  Text,
+  Title,
+  Tooltip,
+} from '@mantine/core';
 import {
   IconAlertTriangle,
   IconCalendarEvent,
+  IconCheck,
   IconChevronRight,
   IconRefresh,
 } from '@tabler/icons-react';
@@ -16,6 +30,8 @@ interface UpcomingPaymentsPanelProps {
   subscriptions: SubscriptionResponseDto[];
   isLoading: boolean;
   hasError: boolean;
+  markingId: string | null;
+  onMarkPaid: (subscription: SubscriptionResponseDto) => void;
   onRetry: () => void;
   onSelect: (subscription: SubscriptionResponseDto) => void;
 }
@@ -57,6 +73,8 @@ export function UpcomingPaymentsPanel({
   subscriptions,
   isLoading,
   hasError,
+  markingId,
+  onMarkPaid,
   onRetry,
   onSelect,
 }: UpcomingPaymentsPanelProps) {
@@ -144,45 +162,69 @@ export function UpcomingPaymentsPanel({
 
               <Stack gap={7}>
                 {group.subscriptions.map((subscription) => (
-                  <button
-                    className={classes.paymentRow}
-                    key={subscription.id}
-                    onClick={() => onSelect(subscription)}
-                    type="button"
-                  >
-                    <Box
-                      className={classes.paymentMark}
-                      style={
-                        subscription.category
-                          ? {
-                              background: subscription.category.color,
-                              color: getCategoryTextColor(subscription.category.color),
-                            }
-                          : undefined
-                      }
+                  <Box className={classes.paymentRow} key={subscription.id}>
+                    <button
+                      aria-label={`Открыть ${subscription.name}`}
+                      className={classes.paymentMain}
+                      onClick={() => onSelect(subscription)}
+                      type="button"
                     >
-                      {subscription.category ? (
-                        <CategoryIcon icon={subscription.category.icon} size={17} />
-                      ) : (
-                        subscription.name.slice(0, 1).toLocaleUpperCase('ru-RU')
-                      )}
-                    </Box>
-                    <Box className={classes.paymentInfo}>
-                      <Text>{subscription.name}</Text>
-                      <Text>
-                        {subscription.paymentMethod?.name ??
-                          subscription.category?.name ??
-                          'Без способа оплаты'}
+                      <Box
+                        className={classes.paymentMark}
+                        style={
+                          subscription.category
+                            ? {
+                                background: subscription.category.color,
+                                color: getCategoryTextColor(subscription.category.color),
+                              }
+                            : undefined
+                        }
+                      >
+                        {subscription.category ? (
+                          <CategoryIcon icon={subscription.category.icon} size={17} />
+                        ) : (
+                          subscription.name.slice(0, 1).toLocaleUpperCase('ru-RU')
+                        )}
+                      </Box>
+                      <Box className={classes.paymentInfo}>
+                        <Text>{subscription.name}</Text>
+                        <Text>
+                          {subscription.paymentMethod?.name ??
+                            subscription.category?.name ??
+                            'Без способа оплаты'}
+                        </Text>
+                      </Box>
+                      <Text className={classes.paymentDate}>
+                        {formatChargeDate(subscription.nextChargeDate, today)}
                       </Text>
-                    </Box>
-                    <Text className={classes.paymentDate}>
-                      {formatChargeDate(subscription.nextChargeDate, today)}
-                    </Text>
-                    <Text className={classes.paymentAmount}>
-                      {formatMoney(subscription.amount, subscription.currency)}
-                    </Text>
-                    <IconChevronRight className={classes.chevron} size={16} />
-                  </button>
+                      <Text className={classes.paymentAmount}>
+                        {formatMoney(subscription.amount, subscription.currency)}
+                      </Text>
+                      <IconChevronRight className={classes.chevron} size={16} />
+                    </button>
+                    <Tooltip
+                      label="Отметить оплаченным"
+                      position="left"
+                      withArrow
+                      withinPortal={false}
+                    >
+                      <ActionIcon
+                        aria-label={`Отметить ${subscription.name} оплаченным`}
+                        className={classes.paidAction}
+                        disabled={Boolean(markingId)}
+                        onClick={() => onMarkPaid(subscription)}
+                        radius="xl"
+                        size={34}
+                        variant="light"
+                      >
+                        {markingId === subscription.id ? (
+                          <Loader color="signal" size={15} />
+                        ) : (
+                          <IconCheck size={17} stroke={2.2} />
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                  </Box>
                 ))}
               </Stack>
             </Box>

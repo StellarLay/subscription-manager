@@ -20,6 +20,8 @@ export interface SubscriptionResponseDto {
   amount: string;
   currency: SubscriptionResponseDtoCurrency;
   billingPeriod: SubscriptionResponseDtoBillingPeriod;
+  /** @minimum 1 */
+  interval: number;
   nextChargeDate: string;
   status: SubscriptionResponseDtoStatus;
   /** @nullable */

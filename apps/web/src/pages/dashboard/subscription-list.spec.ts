@@ -17,6 +17,7 @@ const subscriptions: SubscriptionResponseDto[] = [
     amount: '699.00',
     currency: 'RUB',
     billingPeriod: 'MONTH',
+    interval: 1,
     nextChargeDate: '2026-09-25',
     status: 'ACTIVE',
     paymentMethod: {
@@ -41,6 +42,7 @@ const subscriptions: SubscriptionResponseDto[] = [
     amount: '299.00',
     currency: 'RUB',
     billingPeriod: 'MONTH',
+    interval: 1,
     nextChargeDate: '2026-09-20',
     status: 'ACTIVE',
     paymentMethod: null,

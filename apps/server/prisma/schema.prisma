@@ -119,29 +119,30 @@ model PaymentMethod {
 }
 
 model RecurringPayment {
-  id              String                 @id @default(uuid()) @db.Uuid
-  userId          String                 @db.Uuid
-  paymentMethodId String?                @db.Uuid
-  categoryId      String?                @db.Uuid
-  name            String                 @db.VarChar(160)
-  description     String?                @db.VarChar(500)
-  amount          Decimal                @db.Decimal(14, 2)
-  currency        String                 @default("RUB") @db.Char(3)
-  billingPeriod   BillingPeriod
-  interval        Int                    @default(1)
-  nextChargeDate  DateTime               @db.Date
-  trialEndsAt     DateTime?              @db.Date
-  websiteUrl      String?                @db.VarChar(2048)
-  note            String?                @db.Text
-  status          RecurringPaymentStatus @default(ACTIVE)
-  archivedAt      DateTime?              @db.Timestamptz(3)
-  createdAt       DateTime               @default(now()) @db.Timestamptz(3)
-  updatedAt       DateTime               @updatedAt @db.Timestamptz(3)
-  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paymentMethod   PaymentMethod?         @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
-  category        Category?              @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  reminderRules   ReminderRule[]
-  occurrences     PaymentOccurrence[]
+  id               String                 @id @default(uuid()) @db.Uuid
+  userId           String                 @db.Uuid
+  paymentMethodId  String?                @db.Uuid
+  categoryId       String?                @db.Uuid
+  name             String                 @db.VarChar(160)
+  description      String?                @db.VarChar(500)
+  amount           Decimal                @db.Decimal(14, 2)
+  currency         String                 @default("RUB") @db.Char(3)
+  billingPeriod    BillingPeriod
+  interval         Int                    @default(1)
+  billingAnchorDay Int
+  nextChargeDate   DateTime               @db.Date
+  trialEndsAt      DateTime?              @db.Date
+  websiteUrl       String?                @db.VarChar(2048)
+  note             String?                @db.Text
+  status           RecurringPaymentStatus @default(ACTIVE)
+  archivedAt       DateTime?              @db.Timestamptz(3)
+  createdAt        DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime               @updatedAt @db.Timestamptz(3)
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethod    PaymentMethod?         @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  category         Category?              @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  reminderRules    ReminderRule[]
+  occurrences      PaymentOccurrence[]
 
   @@index([userId, status, nextChargeDate])
   @@index([userId, paymentMethodId])
