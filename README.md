@@ -276,13 +276,22 @@ pnpm install
 docker compose up --build
 ```
 
-После запуска доступны:
+### Локальные адреса
 
-- web-приложение — <http://localhost:5173>;
-- API — <http://localhost:3002/api>;
-- Swagger UI — <http://localhost:3002/api/docs>;
-- Mailpit — <http://localhost:8025>;
-- PostgreSQL — `localhost:54329`.
+| Сервис              | Адрес                                                                    | Как запускается             |
+| ------------------- | ------------------------------------------------------------------------ | --------------------------- |
+| Web-приложение      | <http://localhost:5173>                                                  | `docker compose up --build` |
+| Backend API         | <http://localhost:3002/api>                                              | `docker compose up --build` |
+| Swagger UI          | <http://localhost:3002/api/docs>                                         | `docker compose up --build` |
+| OpenAPI JSON        | <http://localhost:3002/api/docs-json>                                    | `docker compose up --build` |
+| Health check        | <http://localhost:3002/api/health>                                       | `docker compose up --build` |
+| Prisma Studio       | <http://localhost:5555>                                                  | `pnpm db:studio`            |
+| Mailpit             | <http://localhost:8025>                                                  | `docker compose up --build` |
+| PostgreSQL          | `postgresql://subscription_manager@localhost:54329/subscription_manager` | `docker compose up --build` |
+| SMTP для разработки | `localhost:1025`                                                         | `docker compose up --build` |
+
+Prisma Studio не входит в основной Compose-процесс: запустите её отдельной командой
+`pnpm db:studio`, когда нужен просмотр или ручное редактирование локальных данных.
 
 Для запуска приложений на хосте при работающем PostgreSQL:
 
