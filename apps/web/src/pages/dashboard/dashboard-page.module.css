@@ -300,14 +300,35 @@
   background: rgba(255, 255, 255, 0.025);
 }
 
-.categoryFilter {
-  width: 178px;
+.filtersBar {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.5fr) repeat(2, minmax(170px, 1fr)) minmax(190px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 14px 2px 0;
 }
 
-.categoryFilter :global(.mantine-Input-input) {
+.searchInput :global(.mantine-Input-input),
+.filterSelect :global(.mantine-Input-input),
+.sortSelect :global(.mantine-Input-input) {
   color: #b8beb5;
   border-color: var(--app-border);
   background: rgba(255, 255, 255, 0.025);
+}
+
+.searchInput :global(.mantine-Input-input):focus,
+.filterSelect :global(.mantine-Input-input):focus,
+.sortSelect :global(.mantine-Input-input):focus {
+  border-color: rgba(115, 255, 91, 0.34);
+}
+
+.resetFilters {
+  color: #858c83;
+}
+
+.resetFilters:hover {
+  color: var(--app-text);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .listTab {
@@ -576,6 +597,20 @@
   .primaryMetric {
     grid-column: 1 / -1;
   }
+
+  .filtersBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .searchInput,
+  .sortSelect,
+  .resetFilters {
+    grid-column: 1 / -1;
+  }
+
+  .resetFilters {
+    justify-self: end;
+  }
 }
 
 @media (max-width: 48em) {
@@ -686,14 +721,20 @@
     width: 100%;
   }
 
-  .panelControls {
-    width: 100%;
-    align-items: stretch;
-    flex-direction: column-reverse;
+  .filtersBar {
+    grid-template-columns: 1fr;
+    padding-top: 12px;
   }
 
-  .categoryFilter {
+  .searchInput,
+  .filterSelect,
+  .sortSelect {
+    grid-column: auto;
     width: 100%;
+  }
+
+  .resetFilters {
+    justify-self: end;
   }
 
   .listTab {

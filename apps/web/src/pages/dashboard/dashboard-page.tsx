@@ -5,6 +5,7 @@ import {
   useGetCategories,
   useGetArchivedSubscriptions,
   useGetHealth,
+  useGetPaymentMethods,
   useGetSubscriptions,
 } from '@subscription-manager/api-client';
 import {
@@ -21,6 +22,7 @@ import {
   Skeleton,
   Stack,
   Text,
+  TextInput,
   Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -28,24 +30,29 @@ import { notifications } from '@mantine/notifications';
 import {
   IconAlertTriangle,
   IconArchive,
+  IconArrowsSort,
   IconBell,
   IconCalendarDue,
+  IconCreditCard,
   IconDotsVertical,
   IconEdit,
   IconPlus,
   IconReceipt,
   IconRefresh,
   IconRestore,
+  IconSearch,
   IconTag,
   IconTrash,
   IconWallet,
+  IconX,
 } from '@tabler/icons-react';
-import { lazy, Suspense, useCallback, useState } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
 import { CategoryIcon } from '@/features/categories/category-icon';
 
 import classes from './dashboard-page.module.css';
+import { filterAndSortSubscriptions, type SubscriptionSort } from './subscription-list';
 
 const CreateSubscriptionModal = lazy(async () => {
   const module =
@@ -89,6 +96,14 @@ const monthlyFactors: Record<string, number> = {
   CUSTOM: 1,
 };
 
+const sortOptions = [
+  { label: 'Сначала ближайшие', value: 'date-asc' },
+  { label: 'Сначала поздние', value: 'date-desc' },
+  { label: 'Название: А — Я', value: 'name-asc' },
+  { label: 'Название: Я — А', value: 'name-desc' },
+  { label: 'Недавно добавленные', value: 'created-desc' },
+];
+
 function formatMoney(amount: number | string, currency: string): string {
   return new Intl.NumberFormat('ru-RU', {
     currency,
@@ -122,7 +137,10 @@ function getCategoryTextColor(color: string): string {
 
 export function DashboardPage() {
   const [listMode, setListMode] = useState<'active' | 'archive'>('active');
+  const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<SubscriptionSort>('date-asc');
   const [createOpened, createModal] = useDisclosure(false);
   const [editOpened, editModal] = useDisclosure(false);
   const [archiveOpened, archiveModal] = useDisclosure(false);
@@ -138,6 +156,7 @@ export function DashboardPage() {
   );
   const { data: health, error: healthError, isLoading: healthLoading } = useGetHealth();
   const { data: categories = [], isLoading: categoriesLoading } = useGetCategories();
+  const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useGetPaymentMethods();
   const {
     data: subscriptions = [],
     error: subscriptionsError,
@@ -237,11 +256,22 @@ export function DashboardPage() {
 
   const isArchiveMode = listMode === 'archive';
   const unfilteredDisplayedSubscriptions = isArchiveMode ? archivedSubscriptions : subscriptions;
-  const displayedSubscriptions = categoryFilter
-    ? unfilteredDisplayedSubscriptions.filter(
-        (subscription) => subscription.category?.id === categoryFilter,
-      )
-    : unfilteredDisplayedSubscriptions;
+  const displayedSubscriptions = useMemo(
+    () =>
+      filterAndSortSubscriptions(unfilteredDisplayedSubscriptions, {
+        categoryId: categoryFilter,
+        paymentMethodId: paymentMethodFilter,
+        query: searchQuery,
+        sort: sortMode,
+      }),
+    [categoryFilter, paymentMethodFilter, searchQuery, sortMode, unfilteredDisplayedSubscriptions],
+  );
+  const hasListFilters = Boolean(searchQuery.trim() || categoryFilter || paymentMethodFilter);
+  const resetListFilters = () => {
+    setSearchQuery('');
+    setCategoryFilter(null);
+    setPaymentMethodFilter(null);
+  };
   const displayedSubscriptionsLoading = isArchiveMode
     ? archivedSubscriptionsLoading
     : subscriptionsLoading;
@@ -386,49 +416,115 @@ export function DashboardPage() {
                     <Title order={2}>Мои подписки</Title>
                     <Badge className={classes.counter} radius="xl" variant="transparent">
                       {displayedSubscriptions.length}
+                      {hasListFilters ? ` / ${unfilteredDisplayedSubscriptions.length}` : ''}
                     </Badge>
                   </Group>
-                  <Group className={classes.panelControls} gap={8}>
-                    <Select
-                      allowDeselect
-                      className={classes.categoryFilter}
-                      clearable
-                      comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
-                      data={categories.map((category) => ({
-                        label: category.name,
-                        value: category.id,
-                      }))}
-                      disabled={categoriesLoading}
-                      onChange={setCategoryFilter}
-                      placeholder="Все категории"
-                      searchable
-                      size="xs"
-                      value={categoryFilter}
-                    />
-                    <Group className={classes.listTabs} gap={4}>
-                      <Button
-                        className={classes.listTab}
-                        data-active={!isArchiveMode || undefined}
-                        onClick={() => setListMode('active')}
-                        radius="xl"
-                        size="compact-sm"
-                        variant="transparent"
-                      >
-                        Активные
-                      </Button>
-                      <Button
-                        className={classes.listTab}
-                        data-active={isArchiveMode || undefined}
-                        onClick={() => setListMode('archive')}
-                        radius="xl"
-                        size="compact-sm"
-                        variant="transparent"
-                      >
-                        Архив
-                      </Button>
-                    </Group>
+                  <Group className={classes.listTabs} gap={4}>
+                    <Button
+                      className={classes.listTab}
+                      data-active={!isArchiveMode || undefined}
+                      onClick={() => setListMode('active')}
+                      radius="xl"
+                      size="compact-sm"
+                      variant="transparent"
+                    >
+                      Активные
+                    </Button>
+                    <Button
+                      className={classes.listTab}
+                      data-active={isArchiveMode || undefined}
+                      onClick={() => setListMode('archive')}
+                      radius="xl"
+                      size="compact-sm"
+                      variant="transparent"
+                    >
+                      Архив
+                    </Button>
                   </Group>
                 </Group>
+
+                <Box className={classes.filtersBar}>
+                  <TextInput
+                    aria-label="Поиск подписок"
+                    className={classes.searchInput}
+                    leftSection={<IconSearch size={16} />}
+                    onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                    placeholder="Название, категория или карта"
+                    rightSection={
+                      searchQuery ? (
+                        <ActionIcon
+                          aria-label="Очистить поиск"
+                          color="gray"
+                          onClick={() => setSearchQuery('')}
+                          size="sm"
+                          variant="subtle"
+                        >
+                          <IconX size={14} />
+                        </ActionIcon>
+                      ) : null
+                    }
+                    size="sm"
+                    value={searchQuery}
+                  />
+                  <Select
+                    allowDeselect
+                    className={classes.filterSelect}
+                    clearable
+                    comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                    data={categories.map((category) => ({
+                      label: category.name,
+                      value: category.id,
+                    }))}
+                    disabled={categoriesLoading}
+                    leftSection={<IconTag size={15} />}
+                    onChange={setCategoryFilter}
+                    placeholder="Все категории"
+                    searchable
+                    size="sm"
+                    value={categoryFilter}
+                  />
+                  <Select
+                    allowDeselect
+                    className={classes.filterSelect}
+                    clearable
+                    comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                    data={paymentMethods.map((paymentMethod) => ({
+                      label: paymentMethod.lastFour
+                        ? `${paymentMethod.name} • ${paymentMethod.lastFour}`
+                        : paymentMethod.name,
+                      value: paymentMethod.id,
+                    }))}
+                    disabled={paymentMethodsLoading}
+                    leftSection={<IconCreditCard size={15} />}
+                    onChange={setPaymentMethodFilter}
+                    placeholder="Все способы оплаты"
+                    searchable
+                    size="sm"
+                    value={paymentMethodFilter}
+                  />
+                  <Select
+                    allowDeselect={false}
+                    className={classes.sortSelect}
+                    comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                    data={sortOptions}
+                    leftSection={<IconArrowsSort size={15} />}
+                    onChange={(value) => setSortMode((value as SubscriptionSort) ?? 'date-asc')}
+                    size="sm"
+                    value={sortMode}
+                  />
+                  {hasListFilters && (
+                    <Button
+                      className={classes.resetFilters}
+                      leftSection={<IconX size={14} />}
+                      onClick={resetListFilters}
+                      radius="xl"
+                      size="compact-sm"
+                      variant="subtle"
+                    >
+                      Сбросить
+                    </Button>
+                  )}
+                </Box>
 
                 {displayedSubscriptionsLoading && (
                   <Stack className={classes.list} gap={10}>
@@ -465,8 +561,8 @@ export function DashboardPage() {
                   displayedSubscriptions.length === 0 && (
                     <Box className={classes.emptyState}>
                       <Box className={classes.emptyIcon}>
-                        {categoryFilter ? (
-                          <IconTag size={27} stroke={1.6} />
+                        {hasListFilters ? (
+                          <IconSearch size={27} stroke={1.6} />
                         ) : isArchiveMode ? (
                           <IconArchive size={27} stroke={1.6} />
                         ) : (
@@ -474,28 +570,28 @@ export function DashboardPage() {
                         )}
                       </Box>
                       <Title order={3}>
-                        {categoryFilter
-                          ? 'В этой категории пока пусто'
+                        {hasListFilters
+                          ? 'Ничего не найдено'
                           : isArchiveMode
                             ? 'Архив пока пуст'
                             : 'Здесь появится твоя первая подписка'}
                       </Title>
                       <Text>
-                        {categoryFilter
-                          ? 'Сбрось фильтр или выбери другую категорию, чтобы увидеть остальные подписки.'
+                        {hasListFilters
+                          ? 'Измени поисковый запрос или сбрось фильтры, чтобы увидеть остальные подписки.'
                           : isArchiveMode
                             ? 'Здесь будут храниться отключённые подписки — их можно восстановить или удалить окончательно.'
                             : 'Добавь сервис, дату и сумму. Мы соберём календарь списаний и напомним заранее.'}
                       </Text>
-                      {categoryFilter ? (
+                      {hasListFilters ? (
                         <Button
                           className={classes.emptyButton}
                           leftSection={<IconRefresh size={17} />}
-                          onClick={() => setCategoryFilter(null)}
+                          onClick={resetListFilters}
                           radius="xl"
                           variant="default"
                         >
-                          Сбросить фильтр
+                          Сбросить фильтры
                         </Button>
                       ) : !isArchiveMode ? (
                         <Button
