@@ -484,7 +484,7 @@
     }
   },
   "info": {
-    "title": "Subscription Manager API",
+    "title": "Subsio API",
     "description": "API for subscriptions, recurring payments and reminders",
     "version": "0.1.0",
     "contact": {}

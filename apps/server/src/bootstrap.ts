@@ -17,7 +17,7 @@ export function configureApplication(app: INestApplication): void {
 
 export function createOpenApiDocument(app: INestApplication) {
   const config = new DocumentBuilder()
-    .setTitle('Subscription Manager API')
+    .setTitle('Subsio API')
     .setDescription('API for subscriptions, recurring payments and reminders')
     .setVersion('0.1.0')
     .addCookieAuth(SESSION_COOKIE_NAME, undefined, 'session')

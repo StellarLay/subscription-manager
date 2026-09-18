@@ -61,7 +61,7 @@ export function AuthGate({ children }: PropsWithChildren) {
           <Text className={classes.description}>
             {state === 'checking'
               ? 'Проверяем безопасные данные Mini App и открываем твои подписки.'
-              : 'Открой Subtrack из Telegram и попробуй ещё раз.'}
+              : 'Открой Subsio из Telegram и попробуй ещё раз.'}
           </Text>
         </Stack>
         {state === 'checking' ? (

@@ -353,7 +353,7 @@ export function DashboardPage() {
                   <IconReceipt size={20} stroke={2.2} />
                 </Box>
                 <Box>
-                  <Text className={classes.brandName}>Subtrack</Text>
+                  <Text className={classes.brandName}>Subsio</Text>
                   <Text className={classes.brandCaption}>регулярные платежи</Text>
                 </Box>
               </Group>
