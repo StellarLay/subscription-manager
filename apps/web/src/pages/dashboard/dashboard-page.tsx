@@ -50,6 +50,8 @@ import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
 import { CategoryIcon } from '@/features/categories/category-icon';
+import { UpcomingPaymentsPanel } from '@/widgets/upcoming-payments/upcoming-payments-panel';
+import { getDaysUntilCharge } from '@/widgets/upcoming-payments/upcoming-payments';
 
 import classes from './dashboard-page.module.css';
 import { filterAndSortSubscriptions, type SubscriptionSort } from './subscription-list';
@@ -281,6 +283,9 @@ export function DashboardPage() {
   const hasDisplayedSubscriptionsError = Boolean(displayedSubscriptionsError);
   const activeSubscriptions = subscriptions.filter(({ status }) => status === 'ACTIVE');
   const upcomingSubscription = sortByChargeDate(activeSubscriptions)[0];
+  const upcomingDays = upcomingSubscription
+    ? getDaysUntilCharge(upcomingSubscription.nextChargeDate, new Date())
+    : null;
   const monthlyRub = activeSubscriptions
     .filter(({ currency }) => currency === 'RUB')
     .reduce(
@@ -383,11 +388,16 @@ export function DashboardPage() {
                   </Group>
                 </Box>
 
-                <Box className={classes.metricCard}>
+                <Box
+                  className={classes.metricCard}
+                  data-overdue={upcomingDays !== null && upcomingDays < 0 ? true : undefined}
+                >
                   <Box className={classes.metricIcon}>
                     <IconCalendarDue size={20} stroke={1.8} />
                   </Box>
-                  <Text className={classes.metricLabel}>Следующее</Text>
+                  <Text className={classes.metricLabel}>
+                    {upcomingDays !== null && upcomingDays < 0 ? 'Просрочено' : 'Следующее'}
+                  </Text>
                   <Text className={classes.metricValue}>
                     {upcomingSubscription
                       ? formatChargeDate(upcomingSubscription.nextChargeDate)
@@ -409,6 +419,14 @@ export function DashboardPage() {
                   <Text className={classes.metricHint}>подписок</Text>
                 </Box>
               </Box>
+
+              <UpcomingPaymentsPanel
+                hasError={Boolean(subscriptionsError)}
+                isLoading={subscriptionsLoading}
+                onRetry={() => void refreshSubscriptions()}
+                onSelect={openEditModal}
+                subscriptions={activeSubscriptions}
+              />
 
               <Box className={classes.subscriptionsPanel}>
                 <Group className={classes.panelHeader} justify="space-between">

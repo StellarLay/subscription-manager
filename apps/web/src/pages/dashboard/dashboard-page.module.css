@@ -206,6 +206,16 @@
   transform: translateY(-2px);
 }
 
+.metricCard[data-overdue='true'] {
+  border-color: rgba(255, 107, 107, 0.16);
+  background: linear-gradient(145deg, rgba(32, 18, 22, 0.96), rgba(14, 15, 21, 0.96));
+}
+
+.metricCard[data-overdue='true'] .metricIcon,
+.metricCard[data-overdue='true'] .metricLabel {
+  color: #ff8279;
+}
+
 .metricIcon {
   position: relative;
   z-index: 1;

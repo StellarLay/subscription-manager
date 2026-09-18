@@ -1,0 +1,286 @@
+.panel {
+  margin-top: 18px;
+  padding: 24px;
+  border: 1px solid var(--app-border);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(91, 216, 255, 0.08), transparent 27%),
+    rgba(12, 15, 21, 0.88);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(16px);
+}
+
+.header {
+  padding: 0 2px 20px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.header h2 {
+  color: var(--app-text);
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.header > :first-child > :global(.mantine-Text-root) {
+  margin-top: 6px;
+  color: var(--app-text-muted);
+  font-size: 0.78rem;
+}
+
+.counter,
+.groupCount {
+  min-width: 28px;
+  color: #899087;
+  border: 1px solid var(--app-border);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.calendarIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: #8deaff;
+  border: 1px solid rgba(91, 216, 255, 0.15);
+  border-radius: 14px;
+  background: rgba(91, 216, 255, 0.055);
+}
+
+.groupsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.groupSkeleton {
+  min-height: 148px;
+  opacity: 0.28;
+}
+
+.groupCard {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.groupCard[data-tone='overdue'] {
+  border-color: rgba(255, 107, 107, 0.18);
+  background: rgba(255, 82, 82, 0.025);
+}
+
+.groupCard[data-tone='today'] {
+  border-color: rgba(255, 196, 102, 0.17);
+}
+
+.groupCard[data-tone='week'] {
+  border-color: rgba(115, 255, 91, 0.14);
+}
+
+.groupHeading {
+  margin-bottom: 13px;
+}
+
+.groupTitle {
+  color: #dfe3dc;
+  font-size: 0.84rem;
+  font-weight: 670;
+}
+
+.groupDescription {
+  margin-top: 2px;
+  color: #646b63;
+  font-size: 0.68rem;
+}
+
+.groupCard[data-tone='overdue'] .groupTitle {
+  color: #ff8c83;
+}
+
+.paymentRow {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto auto 16px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  padding: 9px 10px;
+  color: inherit;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.027);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.paymentRow:hover {
+  border-color: var(--app-border-strong);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.paymentRow:focus-visible {
+  outline: 2px solid rgba(115, 255, 91, 0.6);
+  outline-offset: 2px;
+}
+
+.paymentMark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #071006;
+  border-radius: 12px;
+  background: var(--app-signal);
+  font-size: 0.82rem;
+  font-weight: 780;
+}
+
+.paymentInfo {
+  min-width: 0;
+}
+
+.paymentInfo :global(.mantine-Text-root:first-child) {
+  overflow: hidden;
+  color: var(--app-text);
+  font-size: 0.8rem;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paymentInfo :global(.mantine-Text-root:last-child) {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #686f67;
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paymentDate {
+  color: #929990;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.groupCard[data-tone='overdue'] .paymentDate {
+  color: #ff8279;
+}
+
+.paymentAmount {
+  min-width: 62px;
+  color: var(--app-text);
+  font-size: 0.79rem;
+  font-weight: 680;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: #535a52;
+}
+
+.emptyState {
+  display: flex;
+  min-height: 112px;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+  color: var(--app-signal);
+  border: 1px dashed var(--app-border-strong);
+  border-radius: 18px;
+}
+
+.emptyState :global(.mantine-Text-root:first-child) {
+  color: var(--app-text);
+  font-size: 0.84rem;
+  font-weight: 620;
+}
+
+.emptyState :global(.mantine-Text-root:last-child) {
+  margin-top: 3px;
+  color: var(--app-text-muted);
+  font-size: 0.72rem;
+}
+
+.error {
+  margin-top: 16px;
+}
+
+.error :global(.mantine-Text-root) {
+  font-size: 0.76rem;
+}
+
+@media (max-width: 62em) {
+  .groupsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 48em) {
+  .panel {
+    margin-top: 12px;
+    padding: 18px;
+    border-radius: 23px;
+  }
+
+  .header {
+    align-items: flex-start;
+    padding-bottom: 17px;
+  }
+
+  .calendarIcon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+  }
+
+  .groupsGrid {
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .groupCard {
+    padding: 12px;
+    border-radius: 17px;
+  }
+
+  .paymentRow {
+    grid-template-columns: 36px minmax(0, 1fr) auto 14px;
+    gap: 9px;
+    padding: 8px;
+  }
+
+  .paymentMark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .paymentDate {
+    grid-row: 2;
+    grid-column: 2;
+    margin-top: -9px;
+    font-size: 0.64rem;
+  }
+
+  .paymentAmount {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+    min-width: 55px;
+  }
+
+  .chevron {
+    grid-row: 1 / span 2;
+    grid-column: 4;
+  }
+}
