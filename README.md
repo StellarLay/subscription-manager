@@ -92,10 +92,12 @@ subscription-manager/
 │   ├── api-client/          # Orval: SWR-клиент, модели и Zod-схемы
 │   ├── domain/              # общая доменная логика без привязки к фреймворку
 │   └── ui/                  # общие компоненты поверх Mantine
-├── docker/                  # Dockerfile приложений
-├── compose.yaml             # PostgreSQL, Mailpit, backend и frontend
-├── .env.example             # документированный контракт окружения
-├── pnpm-workspace.yaml      # состав monorepo
+├── docker/                   # dev/prod Dockerfile и Caddyfile
+├── compose.yaml              # локальная разработка
+├── compose.production.yaml   # production на VPS
+├── .env.example              # только локальные переменные
+├── docs/production/README.md # короткая инструкция по production-сборке
+├── pnpm-workspace.yaml       # состав monorepo
 └── README.md
 ```
 
@@ -299,6 +301,7 @@ Prisma Studio не входит в основной Compose-процесс: за
 
 Локально `TELEGRAM_AUTH_DEV_BYPASS=true` разрешает вход demo-пользователю без Telegram.
 В production этот флаг должен быть `false`, а `TELEGRAM_BOT_TOKEN` — передан только backend- и bot-контейнерам.
+Локальный бот не стартует с обычным `docker compose up`: он включён в профиль `bot`, чтобы не конкурировать с production-ботом за один Telegram-токен. Запускайте `docker compose --profile bot up bot` только с отдельным dev-токеном или после остановки production-бота.
 После публикации HTTPS-адрес Mini App задаётся через `TELEGRAM_MINI_APP_URL`; бот автоматически
 добавляет кнопку запуска и проверяет, что токен принадлежит `@SubsioAppBot`.
 
@@ -324,11 +327,11 @@ pnpm build
 
 ## Развёртывание
 
-Production Compose, Caddy и порядок запуска на VPS описаны в [инструкции по развёртыванию](docs/deployment.md). Технический адрес пока без рабочего HTTPS; для Mini App подключим собственный домен. Отдельный платный SSL-сертификат не требуется — Caddy выпустит его автоматически.
+Production-сборка и запуск на VPS описаны в [отдельном README](docs/production/README.md). Приложение настроено на `subsio.ru`; ждём распространения DNS и выпуска HTTPS-сертификата Caddy.
 
 ## Статус
 
-**Стадия:** Telegram-only авторизация, grammY-бот и production-контейнеры на VPS готовы. Следующий шаг — собственный домен и HTTPS, затем worker и Telegram-уведомления.
+**Стадия:** Telegram-only авторизация, grammY-бот и production-контейнеры на VPS готовы. Следующий шаг — завершить DNS/HTTPS, затем worker и Telegram-уведомления.
 
 ---
 

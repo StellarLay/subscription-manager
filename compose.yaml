@@ -1,5 +1,11 @@
 name: subscription-manager
 
+x-dev-app: &dev-app
+  image: subsio-dev:latest
+  build:
+    context: .
+    dockerfile: docker/dev.Dockerfile
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -28,9 +34,7 @@ services:
     restart: unless-stopped
 
   server:
-    build:
-      context: .
-      dockerfile: docker/server.Dockerfile
+    <<: *dev-app
     command: >-
       sh -c "pnpm install --frozen-lockfile &&
       pnpm --filter @subscription-manager/server run dev:docker"
@@ -64,9 +68,7 @@ services:
     restart: unless-stopped
 
   web:
-    build:
-      context: .
-      dockerfile: docker/web.Dockerfile
+    <<: *dev-app
     command: >-
       sh -c "pnpm install --frozen-lockfile &&
       pnpm --filter @subscription-manager/web run dev"
@@ -92,9 +94,8 @@ services:
     restart: unless-stopped
 
   bot:
-    build:
-      context: .
-      dockerfile: docker/server.Dockerfile
+    <<: *dev-app
+    profiles: [bot]
     command: >-
       sh -c "pnpm install --frozen-lockfile &&
       pnpm --filter @subscription-manager/bot run dev"
