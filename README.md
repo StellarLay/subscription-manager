@@ -245,12 +245,12 @@ Frontend разбит по тем же практичным принципам, 
 
 ### 10. Первый production-релиз
 
-- [ ] Подготовить production Dockerfile
+- [x] Подготовить production Dockerfile
 - [ ] Настроить HTTPS через Caddy
 - [ ] Добавить резервное копирование PostgreSQL
 - [ ] Настроить structured logging и error monitoring
 - [ ] Создать CI pipeline
-- [ ] Автоматизировать применение миграций
+- [x] Автоматизировать применение миграций
 - [ ] Провести security-проверку
 - [ ] Описать развёртывание на одной VM
 
@@ -322,9 +322,13 @@ pnpm test
 pnpm build
 ```
 
+## Развёртывание
+
+Production Compose, Caddy и порядок запуска на VPS описаны в [инструкции по развёртыванию](docs/deployment.md). Для Mini App пока используем бесплатный технический HTTPS-адрес; покупать SSL-сертификат не требуется.
+
 ## Статус
 
-**Стадия:** Telegram-only авторизация и grammY-бот готовы. Следующий шаг — production URL, worker и Telegram-уведомления.
+**Стадия:** Telegram-only авторизация, grammY-бот и production-конфигурация готовы. Следующий шаг — развёртывание на VPS, worker и Telegram-уведомления.
 
 ---
 

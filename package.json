@@ -19,7 +19,10 @@
     "db:seed": "pnpm --filter @subscription-manager/server run db:seed",
     "db:studio": "pnpm --filter @subscription-manager/server run db:studio",
     "compose:up": "docker compose up --build",
-    "compose:down": "docker compose down"
+    "compose:down": "docker compose down",
+    "compose:prod:config": "docker compose --env-file .env.production -f compose.production.yaml config",
+    "compose:prod:up": "docker compose --env-file .env.production -f compose.production.yaml up --build -d",
+    "compose:prod:down": "docker compose --env-file .env.production -f compose.production.yaml down"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

@@ -6,4 +6,7 @@ node_modules/
 coverage/
 .env
 .env.local
+.env.*
+!.env.example
+!.env.production.example
 .DS_Store

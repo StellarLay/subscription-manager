@@ -11,7 +11,7 @@ async function bootstrap(): Promise<void> {
 
   configureApplication(app);
   app.enableShutdownHooks();
-  configureSwagger(app);
+  if (process.env.NODE_ENV !== 'production') configureSwagger(app);
   app.enableCors({
     credentials: true,
     origin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
