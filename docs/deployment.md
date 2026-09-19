@@ -4,11 +4,7 @@
 
 На текущем VPS исходящие соединения к Telegram, npm и Let's Encrypt работают по IPv6, а контейнеры стандартной Docker-сети имеют лишь IPv4. Поэтому бот и Caddy используют host-network. API остаётся в изолированной сети Compose, а Caddy обращается к нему через loopback. Для сборки образов на этом VPS используйте `docker build --network host` вместо обычного `docker compose build`.
 
-Текущий адрес `83-147-246-153.sslip.io` указывает **только на IPv4** `83.147.246.153`. На этом VPS часть зарубежных IPv4-подключений не завершается: Let's Encrypt не может проверить HTTP-01/TLS-ALPN-01, поэтому **HTTPS по этому адресу пока не работает**. Сам Caddy исправен: для тестового имени, указывающего на IPv6 сервера `2a03:6f01:1:2::2:da4`, сертификат выпущен и проверен. IPv6-only имя не подходит как основной адрес Mini App: часть клиентов не имеет IPv6.
-
-Для запуска используйте одно бесплатное имя с **двумя** DNS-записями, например `subsio.dynv6.net` (если свободно): `A → 83.147.246.153`, `AAAA → 2a03:6f01:1:2::2:da4`. [dynv6](https://dynv6.com/) позволяет бесплатно создать имя и управлять IPv4/IPv6-записями. Let's Encrypt предпочитает IPv6 при проверке такого имени; клиентам без IPv6 остаётся IPv4. После выбора имени укажите его в `APP_HOST` в `.env.production` **на Mac и на VPS**, перезапустите Compose и проверьте HTTPS. Не публикуйте `.env.production` и токен бота. При появлении собственного домена достаточно заменить `APP_HOST` и DNS-записи.
-
-Параллельно обратитесь в поддержку Timeweb по поводу недоступности части IPv4-направлений: с VPS исходящий IPv4 к `api.telegram.org` и `registry.npmjs.org` не проходит, а Let's Encrypt сообщает `Timeout after connect` при обращении к `83.147.246.153:80/443`. При проверке `tcpdump` на `eth0` входящие IPv4 SYN видны, сервер отправляет SYN-ACK, но для ряда внешних адресов ACK от клиента не приходит. Исходящий и входящий IPv6 работают. Попросите проверить маршрутизацию/фильтрацию IPv4 для адреса `83.147.246.153`; не отправляйте им секреты приложения.
+Адрес Mini App: <https://83-147-246-153.sslip.io>. `sslip.io` направляет этот hostname на `83.147.246.153`; Caddy получает и продлевает бесплатный TLS-сертификат. При появлении своего домена достаточно изменить `APP_HOST`, DNS-запись и перезапустить стек.
 
 ## 1. Доступ к серверу
 
@@ -32,11 +28,10 @@ ssh -i ~/.ssh/id_rsa root@83.147.246.153
 На локальном Mac из корня проекта создайте отдельный production env из уже настроенного токена бота:
 
 ```bash
-SUBSIO_HOST=subsio.dynv6.net # замените на своё зарегистрированное имя
-node scripts/create-production-env.mjs "$SUBSIO_HOST"
+node scripts/create-production-env.mjs 83-147-246-153.sslip.io
 ```
 
-Скрипт создаёт `.env.production` с правами `0600` и случайным паролем PostgreSQL. Он откажется перезаписать существующий файл. Если файл уже создан, **поменяйте в нём только `APP_HOST`** на Mac и на VPS; не генерируйте повторно пароль БД. Файл игнорируется Git и Docker build context. Не копируйте в production обычный `.env`: в нём включён локальный dev-bypass.
+Скрипт создаёт `.env.production` с правами `0600` и случайным паролем PostgreSQL. Он откажется перезаписать существующий файл. Файл игнорируется Git и Docker build context. Не копируйте в production обычный `.env`: в нём включён локальный dev-bypass.
 
 ## 4. Код и запуск
 
@@ -68,25 +63,12 @@ docker compose --env-file .env.production -f compose.production.yaml ps
 ## 5. Проверка
 
 ```bash
-SUBSIO_HOST=subsio.dynv6.net # замените на своё зарегистрированное имя
-curl -fsS "https://$SUBSIO_HOST/api/health"
-curl -I "https://$SUBSIO_HOST/"
+curl -fsS https://83-147-246-153.sslip.io/api/health
+curl -I https://83-147-246-153.sslip.io/
 docker compose --env-file .env.production -f compose.production.yaml logs --tail=100 server bot web
 ```
 
 Затем проверьте кнопку «Открыть Subsio» у `@SubsioAppBot` и вход через Telegram. Локального бота с тем же токеном перед production-запуском нужно остановить: два процесса long polling будут конфликтовать.
-
-### Переключение уже запущенного VPS на новое имя
-
-Создайте имя в dynv6 и добавьте **обе** записи `A` и `AAAA` выше. Проверьте их: `dig +short A ваше-имя.dynv6.net` и `dig +short AAAA ваше-имя.dynv6.net`. Отправьте мне только имя, не пароль и не API-токен DNS. После этого замените **только** `APP_HOST` в локальном `.env.production` и в `/opt/subsio/.env.production` на сервере. На VPS перезапустите контейнеры:
-
-```bash
-cd /opt/subsio
-docker compose --env-file .env.production -f compose.production.yaml up --no-build -d
-docker compose --env-file .env.production -f compose.production.yaml logs --tail=50 web
-```
-
-Не останавливайте Compose с `-v` и не создавайте заново production env: это может заменить пароль рабочей базы. Caddy перевыпустит сертификат для нового имени автоматически; проверьте `curl` выше без `-k`.
 
 ## Обновление и откат
 
@@ -104,7 +86,6 @@ docker compose --env-file .env.production -f compose.production.yaml up --no-bui
 
 ## Что остаётся перед публичным релизом
 
-- Получить бесплатное имя с A+AAAA, добиться валидного HTTPS и проверить маршрут IPv4 с Timeweb.
 - Проверить на VPS firewall и SSH-доступ после перезапуска.
 - Проверить HTTPS и Telegram-вход на реальном телефоне.
 - Проверить восстановление PostgreSQL из бэкапа, а не только наличие бэкапа.
