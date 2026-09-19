@@ -4,7 +4,7 @@
 
 На текущем VPS исходящие соединения к Telegram, npm и Let's Encrypt работают по IPv6, а контейнеры стандартной Docker-сети имеют лишь IPv4. Поэтому бот и Caddy используют host-network. API остаётся в изолированной сети Compose, а Caddy обращается к нему через loopback. Для сборки образов на этом VPS используйте `docker build --network host` вместо обычного `docker compose build`.
 
-Адрес Mini App: <https://83-147-246-153.sslip.io>. `sslip.io` направляет этот hostname на `83.147.246.153`; Caddy получает и продлевает бесплатный TLS-сертификат. При появлении своего домена достаточно изменить `APP_HOST`, DNS-запись и перезапустить стек.
+Текущий технический адрес `83-147-246-153.sslip.io` пока **не готов для Mini App**: сертификат для него не выпущен из-за недоступности IPv4 с части внешних сетей. После покупки собственного домена создайте `A`-запись на `83.147.246.153` и `AAAA`-запись на `2a03:6f01:1:2::2:da4`, затем измените `APP_HOST` в уже существующем `.env.production` на Mac и VPS. Не пересоздавайте файл целиком: в нём пароль рабочей базы. Caddy автоматически получит и продлит сертификат для нового имени; платный SSL-сертификат не требуется. Если всё-таки используете купленный сертификат, понадобится отдельно настроить его установку и продление.
 
 ## 1. Доступ к серверу
 
@@ -25,13 +25,13 @@ ssh -i ~/.ssh/id_rsa root@83.147.246.153
 
 ## 3. Секреты
 
-На локальном Mac из корня проекта создайте отдельный production env из уже настроенного токена бота:
+При новом развёртывании на локальном Mac из корня проекта создайте отдельный production env из уже настроенного токена бота (замените пример на купленный домен):
 
 ```bash
-node scripts/create-production-env.mjs 83-147-246-153.sslip.io
+node scripts/create-production-env.mjs subsio.example.com
 ```
 
-Скрипт создаёт `.env.production` с правами `0600` и случайным паролем PostgreSQL. Он откажется перезаписать существующий файл. Файл игнорируется Git и Docker build context. Не копируйте в production обычный `.env`: в нём включён локальный dev-bypass.
+Скрипт создаёт `.env.production` с правами `0600` и случайным паролем PostgreSQL. Он откажется перезаписать существующий файл. Для уже запущенного VPS нужно поменять только `APP_HOST` в существующем файле — **не генерируйте новый пароль БД**. Файл игнорируется Git и Docker build context. Не копируйте в production обычный `.env`: в нём включён локальный dev-bypass.
 
 ## 4. Код и запуск
 
@@ -63,8 +63,9 @@ docker compose --env-file .env.production -f compose.production.yaml ps
 ## 5. Проверка
 
 ```bash
-curl -fsS https://83-147-246-153.sslip.io/api/health
-curl -I https://83-147-246-153.sslip.io/
+SUBSIO_HOST=subsio.example.com # замените на купленный домен
+curl -fsS "https://$SUBSIO_HOST/api/health"
+curl -I "https://$SUBSIO_HOST/"
 docker compose --env-file .env.production -f compose.production.yaml logs --tail=100 server bot web
 ```
 
@@ -87,6 +88,6 @@ docker compose --env-file .env.production -f compose.production.yaml up --no-bui
 ## Что остаётся перед публичным релизом
 
 - Проверить на VPS firewall и SSH-доступ после перезапуска.
-- Проверить HTTPS и Telegram-вход на реальном телефоне.
+- Подключить собственный домен с A/AAAA, проверить HTTPS и Telegram-вход на реальном телефоне.
 - Проверить восстановление PostgreSQL из бэкапа, а не только наличие бэкапа.
 - Доделать worker и Telegram-напоминания: сейчас бот открывает Mini App, но ещё не отправляет уведомления о платежах.
