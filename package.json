@@ -21,7 +21,7 @@
     "compose:up": "docker compose up --build",
     "compose:down": "docker compose down",
     "compose:prod:config": "docker compose --env-file .env.production -f compose.production.yaml config",
-    "compose:prod:up": "docker compose --env-file .env.production -f compose.production.yaml up --build -d",
+    "compose:prod:up": "docker compose --env-file .env.production -f compose.production.yaml up --no-build -d",
     "compose:prod:down": "docker compose --env-file .env.production -f compose.production.yaml down"
   },
   "devDependencies": {

@@ -41,6 +41,8 @@ services:
       TELEGRAM_AUTH_DEV_BYPASS: 'false'
       TELEGRAM_AUTH_MAX_AGE_SECONDS: ${TELEGRAM_AUTH_MAX_AGE_SECONDS:-600}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    ports:
+      - '127.0.0.1:3000:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,6 +58,7 @@ services:
   bot:
     <<: *node-app
     command: pnpm --filter @subscription-manager/bot run start
+    network_mode: host
     environment:
       NODE_ENV: production
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -72,10 +75,7 @@ services:
       dockerfile: docker/web.prod.Dockerfile
     environment:
       APP_HOST: ${APP_HOST}
-    ports:
-      - '80:80'
-      - '443:443'
-      - '443:443/udp'
+    network_mode: host
     volumes:
       - caddy_data:/data
       - caddy_config:/config

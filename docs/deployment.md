@@ -1,6 +1,8 @@
 # Развёртывание Subsio на VPS
 
-Для первого релиза используем один сервер с Docker Compose: PostgreSQL, NestJS API, grammY-бот и Caddy со статическим React-приложением. Публичны только порты `80` и `443`; база и API-контейнер доступны лишь внутри Docker-сети.
+Для первого релиза используем один сервер с Docker Compose: PostgreSQL, NestJS API, grammY-бот и Caddy со статическим React-приложением. Публичны только порты `80` и `443`; база остаётся внутри Docker-сети, API проброшен только на `127.0.0.1:3000` хоста.
+
+На текущем VPS исходящие соединения к Telegram, npm и Let's Encrypt работают по IPv6, а контейнеры стандартной Docker-сети имеют лишь IPv4. Поэтому бот и Caddy используют host-network. API остаётся в изолированной сети Compose, а Caddy обращается к нему через loopback. Для сборки образов на этом VPS используйте `docker build --network host` вместо обычного `docker compose build`.
 
 Адрес Mini App: <https://83-147-246-153.sslip.io>. `sslip.io` направляет этот hostname на `83.147.246.153`; Caddy получает и продлевает бесплатный TLS-сертификат. При появлении своего домена достаточно изменить `APP_HOST`, DNS-запись и перезапустить стек.
 
@@ -50,7 +52,9 @@ scp -i ~/.ssh/id_rsa .env.production root@83.147.246.153:/opt/subsio/.env.produc
 ```bash
 cd /opt/subsio
 chmod 600 .env.production
-docker compose --env-file .env.production -f compose.production.yaml up --build -d
+docker build --network host -t subsio-node:latest -f docker/node.prod.Dockerfile .
+docker build --network host -t subsio-web:latest -f docker/web.prod.Dockerfile .
+docker compose --env-file .env.production -f compose.production.yaml up --no-build -d
 docker compose --env-file .env.production -f compose.production.yaml ps
 ```
 
@@ -73,7 +77,9 @@ docker compose --env-file .env.production -f compose.production.yaml logs --tail
 ```bash
 cd /opt/subsio
 git pull --ff-only
-docker compose --env-file .env.production -f compose.production.yaml up --build -d
+docker build --network host -t subsio-node:latest -f docker/node.prod.Dockerfile .
+docker build --network host -t subsio-web:latest -f docker/web.prod.Dockerfile .
+docker compose --env-file .env.production -f compose.production.yaml up --no-build -d
 ```
 
 Не используйте `docker compose down -v`: флаг `-v` удалит volume с PostgreSQL. Для отката приложения нужен предыдущий Git commit или image; откат схемы БД отдельно требует плана миграции и актуального бэкапа.
