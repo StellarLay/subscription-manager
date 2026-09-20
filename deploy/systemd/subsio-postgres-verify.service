@@ -1,0 +1,14 @@
+[Unit]
+Description=Verify latest Subsio PostgreSQL backup by isolated restore
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/subsio
+EnvironmentFile=/opt/subsio/.env.backup
+ExecStart=/opt/subsio/scripts/verify-postgres-backup.sh
+UMask=0077
+TimeoutStartSec=1h

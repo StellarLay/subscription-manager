@@ -1,0 +1,14 @@
+[Unit]
+Description=Back up Subsio PostgreSQL to encrypted off-server restic repository
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/subsio
+EnvironmentFile=/opt/subsio/.env.backup
+ExecStart=/opt/subsio/scripts/backup-postgres.sh
+UMask=0077
+TimeoutStartSec=1h

@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly isolated restore check for Subsio PostgreSQL backups
+
+[Timer]
+OnCalendar=Sun *-*-* 03:00:00 Europe/Moscow
+Persistent=true
+Unit=subsio-postgres-verify.service
+
+[Install]
+WantedBy=timers.target
