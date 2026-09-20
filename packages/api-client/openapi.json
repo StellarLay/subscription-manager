@@ -376,48 +376,6 @@
         ]
       }
     },
-    "/api/subscriptions/{id}/mark-paid": {
-      "post": {
-        "operationId": "markSubscriptionPaid",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MarkSubscriptionPaidDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Mark the current charge as paid",
-        "tags": [
-          "Subscriptions"
-        ]
-      }
-    },
     "/api/subscriptions/{id}/archive": {
       "patch": {
         "operationId": "archiveSubscription",
@@ -848,6 +806,7 @@
           },
           "nextChargeDate": {
             "type": "string",
+            "description": "Ближайшая дата по графику, а не подтверждение фактической оплаты",
             "example": "2026-09-15",
             "format": "date"
           },
@@ -1011,19 +970,6 @@
             "nullable": true
           }
         }
-      },
-      "MarkSubscriptionPaidDto": {
-        "type": "object",
-        "properties": {
-          "scheduledFor": {
-            "type": "string",
-            "example": "2026-09-19",
-            "format": "date"
-          }
-        },
-        "required": [
-          "scheduledFor"
-        ]
       }
     }
   }

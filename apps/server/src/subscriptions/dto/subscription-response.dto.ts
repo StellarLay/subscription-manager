@@ -46,7 +46,12 @@ export class SubscriptionResponseDto {
   @ApiProperty({ example: 1, minimum: 1, type: Number })
   interval!: number;
 
-  @ApiProperty({ example: '2026-09-15', format: 'date', type: String })
+  @ApiProperty({
+    description: 'Ближайшая дата по графику, а не подтверждение фактической оплаты',
+    example: '2026-09-15',
+    format: 'date',
+    type: String,
+  })
   nextChargeDate!: string;
 
   @ApiProperty({ enum: RecurringPaymentStatus, type: String })

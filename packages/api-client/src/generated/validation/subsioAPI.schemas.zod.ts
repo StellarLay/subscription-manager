@@ -120,7 +120,7 @@ export const SubscriptionResponseDto = zod.object({
   "currency": zod.enum(['RUB', 'USD', 'EUR']),
   "billingPeriod": zod.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR', 'CUSTOM']),
   "interval": zod.number().min(1),
-  "nextChargeDate": zod.iso.date(),
+  "nextChargeDate": zod.iso.date().describe('Ближайшая дата по графику, а не подтверждение фактической оплаты'),
   "status": zod.enum(['ACTIVE', 'PAUSED', 'CANCELLED', 'ARCHIVED']),
   "paymentMethod": SubscriptionPaymentMethodDto.nullish(),
   "createdAt": zod.iso.datetime({"offset":true})
@@ -176,10 +176,3 @@ export const UpdateSubscriptionDto = zod.object({
 
 export type UpdateSubscriptionDto = zod.input<typeof UpdateSubscriptionDto>;
 export type UpdateSubscriptionDtoOutput = zod.output<typeof UpdateSubscriptionDto>;
-
-export const MarkSubscriptionPaidDto = zod.object({
-  "scheduledFor": zod.iso.date()
-});
-
-export type MarkSubscriptionPaidDto = zod.input<typeof MarkSubscriptionPaidDto>;
-export type MarkSubscriptionPaidDtoOutput = zod.output<typeof MarkSubscriptionPaidDto>;

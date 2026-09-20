@@ -119,7 +119,7 @@ export function CreatePaymentMethodModal({
       <form onSubmit={(event) => void submit(event)}>
         <Stack gap="md">
           <TextInput
-            autoFocus
+            autoFocus={!isMobile}
             error={errors.name ? 'Укажи понятное название' : undefined}
             label="Название"
             leftSection={<IconCreditCard size={17} />}

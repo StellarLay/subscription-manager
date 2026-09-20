@@ -8,6 +8,10 @@
   --app-text: #f4f6f1;
   --app-text-muted: #8d948b;
   --app-signal: #73ff5b;
+  --app-safe-top: 0px;
+  --app-safe-right: 0px;
+  --app-safe-bottom: 0px;
+  --app-safe-left: 0px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -22,6 +26,17 @@ body {
   background: var(--app-bg);
   color: var(--app-text);
   -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 48em) {
+  .mantine-Input-input {
+    font-size: 16px;
+  }
+
+  .mantine-Modal-close {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 ::selection {

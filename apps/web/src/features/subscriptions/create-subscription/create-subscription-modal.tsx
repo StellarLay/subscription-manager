@@ -134,7 +134,7 @@ export function CreateSubscriptionModal({
     reset,
     setError,
     setValue,
-    formState: { errors },
+    formState: { dirtyFields, errors },
   } = useForm<CreateSubscriptionDto>({
     resolver: zodResolver(CreateSubscriptionBody),
     defaultValues: getDefaultValues(subscription),
@@ -165,7 +165,10 @@ export function CreateSubscriptionModal({
         paymentMethodId: values.paymentMethodId ?? null,
       };
       const savedSubscription = subscription
-        ? await updateSubscription(valuesToSave)
+        ? await updateSubscription({
+            ...valuesToSave,
+            nextChargeDate: dirtyFields.nextChargeDate ? valuesToSave.nextChargeDate : undefined,
+          })
         : await createSubscription(valuesToSave);
 
       onSaved(savedSubscription);
@@ -248,7 +251,7 @@ export function CreateSubscriptionModal({
         <form onSubmit={(event) => void submit(event)}>
           <Stack gap="md">
             <TextInput
-              autoFocus
+              autoFocus={!isMobile}
               error={errors.name ? 'Укажи название подписки' : undefined}
               label="Название"
               placeholder="Например, YouTube Premium"
@@ -268,6 +271,7 @@ export function CreateSubscriptionModal({
                     decimalSeparator=","
                     error={fieldState.error ? 'Укажи сумму больше нуля' : undefined}
                     hideControls
+                    inputMode="decimal"
                     label="Сумма"
                     min={0.01}
                     onBlur={field.onBlur}
@@ -361,6 +365,7 @@ export function CreateSubscriptionModal({
                     <NumberInput
                       allowDecimal={false}
                       allowNegative={false}
+                      inputMode="numeric"
                       error={fieldState.error ? 'Укажи от 1 до 3650 дней' : undefined}
                       label="Интервал между списаниями"
                       max={3650}
@@ -376,7 +381,7 @@ export function CreateSubscriptionModal({
                   )}
                 />
                 <Text className={classes.customIntervalHint}>
-                  После оплаты следующая дата автоматически сдвинется на указанное число дней.
+                  Ближайшая дата автоматически рассчитывается с этим интервалом.
                 </Text>
               </Box>
             )}
@@ -476,7 +481,7 @@ export function CreateSubscriptionModal({
             </Box>
 
             <Text className={classes.reminderHint}>
-              Напомним о списании за день. Правила уведомлений можно будет изменить позже.
+              Даты списаний обновляются автоматически. Напоминания добавим следующим этапом.
             </Text>
 
             {errors.root?.message && (

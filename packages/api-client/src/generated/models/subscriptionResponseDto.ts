@@ -22,6 +22,7 @@ export interface SubscriptionResponseDto {
   billingPeriod: SubscriptionResponseDtoBillingPeriod;
   /** @minimum 1 */
   interval: number;
+  /** Ближайшая дата по графику, а не подтверждение фактической оплаты */
   nextChargeDate: string;
   status: SubscriptionResponseDtoStatus;
   /** @nullable */

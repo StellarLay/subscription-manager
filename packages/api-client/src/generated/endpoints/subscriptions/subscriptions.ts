@@ -19,7 +19,6 @@ import type {
 
 import type {
   CreateSubscriptionDto,
-  MarkSubscriptionPaidDto,
   SubscriptionResponseDto,
   UpdateSubscriptionDto
 } from '../../models';
@@ -292,66 +291,6 @@ export const useDeleteSubscription = <TError = unknown>(
 
   const swrKey = swrOptions?.swrKey ?? getDeleteSubscriptionMutationKey(id);
   const swrFn = getDeleteSubscriptionMutationFetcher(id, requestOptions);
-
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-export const getMarkSubscriptionPaidUrl = (id: string,) => {
-
-
-
-
-  return `/api/subscriptions/${id}/mark-paid`
-}
-
-/**
- * @summary Mark the current charge as paid
- */
-export const markSubscriptionPaid = async (id: string,
-    markSubscriptionPaidDto: MarkSubscriptionPaidDto, options?: Parameters<typeof customFetch>[1]): Promise<SubscriptionResponseDto> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Array.isArray(h)) return Object.fromEntries(h);
-    return h;
-  };
-return customFetch<SubscriptionResponseDto>(getMarkSubscriptionPaidUrl(id),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(markSubscriptionPaidDto)
-  }
-);}
-
-
-
-
-export const getMarkSubscriptionPaidMutationFetcher = (id: string, options?: SecondParameter<typeof customFetch>) => {
-  return (_: Key, { arg }: { arg: MarkSubscriptionPaidDto }) => {
-    return markSubscriptionPaid(id, arg, options);
-  }
-}
-export const getMarkSubscriptionPaidMutationKey = (id: string,) => [`/api/subscriptions/${id}/mark-paid`] as const;
-
-export type MarkSubscriptionPaidMutationResult = NonNullable<Awaited<ReturnType<typeof markSubscriptionPaid>>>
-
-/**
- * @summary Mark the current charge as paid
- */
-export const useMarkSubscriptionPaid = <TError = unknown>(
-  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof markSubscriptionPaid>>, TError, Key, MarkSubscriptionPaidDto, Awaited<ReturnType<typeof markSubscriptionPaid>>> & { swrKey?: string }, request?: SecondParameter<typeof customFetch>}
-) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const swrKey = swrOptions?.swrKey ?? getMarkSubscriptionPaidMutationKey(id);
-  const swrFn = getMarkSubscriptionPaidMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 import {
   CreateSubscriptionDto,
-  MarkSubscriptionPaidDto,
   UpdateSubscriptionDto
 } from '../subsioAPI.schemas.zod';
 
@@ -34,15 +33,6 @@ export const UpdateSubscriptionBody = UpdateSubscriptionDto
 export const DeleteSubscriptionParams = zod.object({
   "id": zod.uuid()
 })
-
-/**
- * @summary Mark the current charge as paid
- */
-export const MarkSubscriptionPaidParams = zod.object({
-  "id": zod.uuid()
-})
-
-export const MarkSubscriptionPaidBody = MarkSubscriptionPaidDto
 
 /**
  * @summary Archive a subscription

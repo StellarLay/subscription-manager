@@ -1,22 +1,8 @@
 import type { SubscriptionResponseDto } from '@subscription-manager/api-client';
-import {
-  ActionIcon,
-  Alert,
-  Badge,
-  Box,
-  Button,
-  Group,
-  Loader,
-  Skeleton,
-  Stack,
-  Text,
-  Title,
-  Tooltip,
-} from '@mantine/core';
+import { Alert, Badge, Box, Button, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
 import {
   IconAlertTriangle,
   IconCalendarEvent,
-  IconCheck,
   IconChevronRight,
   IconRefresh,
 } from '@tabler/icons-react';
@@ -30,8 +16,6 @@ interface UpcomingPaymentsPanelProps {
   subscriptions: SubscriptionResponseDto[];
   isLoading: boolean;
   hasError: boolean;
-  markingId: string | null;
-  onMarkPaid: (subscription: SubscriptionResponseDto) => void;
   onRetry: () => void;
   onSelect: (subscription: SubscriptionResponseDto) => void;
 }
@@ -73,8 +57,6 @@ export function UpcomingPaymentsPanel({
   subscriptions,
   isLoading,
   hasError,
-  markingId,
-  onMarkPaid,
   onRetry,
   onSelect,
 }: UpcomingPaymentsPanelProps) {
@@ -194,36 +176,16 @@ export function UpcomingPaymentsPanel({
                             'Без способа оплаты'}
                         </Text>
                       </Box>
-                      <Text className={classes.paymentDate}>
-                        {formatChargeDate(subscription.nextChargeDate, today)}
-                      </Text>
-                      <Text className={classes.paymentAmount}>
-                        {formatMoney(subscription.amount, subscription.currency)}
-                      </Text>
+                      <Box className={classes.paymentDetails}>
+                        <Text className={classes.paymentDate}>
+                          {formatChargeDate(subscription.nextChargeDate, today)}
+                        </Text>
+                        <Text className={classes.paymentAmount}>
+                          {formatMoney(subscription.amount, subscription.currency)}
+                        </Text>
+                      </Box>
                       <IconChevronRight className={classes.chevron} size={16} />
                     </button>
-                    <Tooltip
-                      label="Отметить оплаченным"
-                      position="left"
-                      withArrow
-                      withinPortal={false}
-                    >
-                      <ActionIcon
-                        aria-label={`Отметить ${subscription.name} оплаченным`}
-                        className={classes.paidAction}
-                        disabled={Boolean(markingId)}
-                        onClick={() => onMarkPaid(subscription)}
-                        radius="xl"
-                        size={34}
-                        variant="light"
-                      >
-                        {markingId === subscription.id ? (
-                          <Loader color="signal" size={15} />
-                        ) : (
-                          <IconCheck size={17} stroke={2.2} />
-                        )}
-                      </ActionIcon>
-                    </Tooltip>
                   </Box>
                 ))}
               </Stack>

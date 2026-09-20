@@ -40,8 +40,8 @@ export function groupUpcomingPayments(
   const groups: UpcomingPaymentGroup[] = [
     {
       id: 'overdue',
-      title: 'Просрочено',
-      description: 'Дата уже прошла',
+      title: 'Дата прошла',
+      description: 'Проверь график подписки',
       subscriptions: [],
     },
     {

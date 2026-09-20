@@ -126,7 +126,7 @@ export function CreateCategoryModal({ opened, onClose, onCreated }: CreateCatego
       <form onSubmit={(event) => void submit(event)}>
         <Stack gap="md">
           <TextInput
-            autoFocus
+            autoFocus={!isMobile}
             error={errors.name ? 'Укажи название категории' : undefined}
             label="Название"
             leftSection={<IconTag size={17} />}

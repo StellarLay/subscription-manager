@@ -7,6 +7,10 @@ export interface NextChargeDateInput {
   anchorDay?: number;
 }
 
+export interface UpcomingChargeDateInput extends NextChargeDateInput {
+  asOfDate: string;
+}
+
 const dateKeyPattern = /^\d{4}-\d{2}-\d{2}$/;
 
 function parseDateKey(dateKey: string): Date {
@@ -39,6 +43,18 @@ function formatDateKey(date: Date): string {
     String(date.getUTCMonth() + 1).padStart(2, '0'),
     String(date.getUTCDate()).padStart(2, '0'),
   ].join('-');
+}
+
+export function formatDateKeyInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const part = (type: 'year' | 'month' | 'day') => parts.find((item) => item.type === type)?.value;
+
+  return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
 function addDays(date: Date, days: number): Date {
@@ -91,4 +107,51 @@ export function calculateNextChargeDate({
       throw new Error('Unsupported billing period');
     }
   }
+}
+
+export function calculateUpcomingChargeDate({
+  currentDate,
+  asOfDate,
+  billingPeriod,
+  interval = 1,
+  anchorDay,
+}: UpcomingChargeDateInput): string {
+  if (!Number.isInteger(interval) || interval < 1) {
+    throw new Error('Billing interval must be a positive integer');
+  }
+
+  const current = parseDateKey(currentDate);
+  const asOf = parseDateKey(asOfDate);
+  const resolvedAnchorDay = anchorDay ?? current.getUTCDate();
+
+  if (!Number.isInteger(resolvedAnchorDay) || resolvedAnchorDay < 1 || resolvedAnchorDay > 31) {
+    throw new Error('Billing anchor day must be between 1 and 31');
+  }
+
+  if (current >= asOf) return currentDate;
+
+  if (billingPeriod === 'WEEK' || billingPeriod === 'CUSTOM') {
+    const daysPerCycle = billingPeriod === 'WEEK' ? interval * 7 : interval;
+    const elapsedDays = Math.floor((asOf.getTime() - current.getTime()) / 86_400_000);
+    return formatDateKey(addDays(current, Math.ceil(elapsedDays / daysPerCycle) * daysPerCycle));
+  }
+
+  const monthsPerCycle =
+    billingPeriod === 'MONTH'
+      ? interval
+      : billingPeriod === 'QUARTER'
+        ? interval * 3
+        : interval * 12;
+  const elapsedMonths =
+    (asOf.getUTCFullYear() - current.getUTCFullYear()) * 12 +
+    asOf.getUTCMonth() -
+    current.getUTCMonth();
+  const cycles = Math.max(0, Math.floor(elapsedMonths / monthsPerCycle));
+  let next = addMonths(current, cycles * monthsPerCycle, resolvedAnchorDay);
+
+  if (next < asOf) {
+    next = addMonths(current, (cycles + 1) * monthsPerCycle, resolvedAnchorDay);
+  }
+
+  return formatDateKey(next);
 }

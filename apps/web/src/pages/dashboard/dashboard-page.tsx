@@ -1,6 +1,5 @@
 import {
   ApiError,
-  markSubscriptionPaid,
   restoreSubscription,
   type SubscriptionResponseDto,
   useGetCategories,
@@ -33,7 +32,6 @@ import {
   IconAlertTriangle,
   IconArchive,
   IconArrowsSort,
-  IconBell,
   IconCalendarDue,
   IconCreditCard,
   IconDotsVertical,
@@ -65,11 +63,6 @@ import { getDaysUntilCharge } from '@/widgets/upcoming-payments/upcoming-payment
 
 import classes from './dashboard-page.module.css';
 import { filterAndSortSubscriptions, type SubscriptionSort } from './subscription-list';
-
-const currentPeriod = new Intl.DateTimeFormat('ru-RU', {
-  month: 'long',
-  year: 'numeric',
-}).format(new Date());
 
 const sortOptions = [
   { label: 'Сначала ближайшие', value: 'date-asc' },
@@ -128,7 +121,6 @@ export function DashboardPage() {
   const [archiveOpened, archiveModal] = useDisclosure(false);
   const [deleteOpened, deleteModal] = useDisclosure(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
-  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
   const [editingSubscription, setEditingSubscription] = useState<SubscriptionResponseDto | null>(
     null,
   );
@@ -152,7 +144,9 @@ export function DashboardPage() {
     error: subscriptionsError,
     isLoading: subscriptionsLoading,
     mutate: refreshSubscriptions,
-  } = useGetSubscriptions();
+  } = useGetSubscriptions({
+    swr: { refreshInterval: 15 * 60 * 1000, revalidateOnFocus: true },
+  });
   const {
     data: archivedSubscriptions = [],
     error: archivedSubscriptionsError,
@@ -242,41 +236,6 @@ export function DashboardPage() {
       setRestoringId(null);
     }
   };
-  const markAsPaid = async (subscription: SubscriptionResponseDto) => {
-    setMarkingPaidId(subscription.id);
-
-    try {
-      const updatedSubscription = await markSubscriptionPaid(subscription.id, {
-        scheduledFor: subscription.nextChargeDate,
-      });
-
-      void refreshSubscriptions(
-        (currentSubscriptions) =>
-          currentSubscriptions?.map((currentSubscription) =>
-            currentSubscription.id === updatedSubscription.id
-              ? updatedSubscription
-              : currentSubscription,
-          ),
-        { revalidate: true },
-      );
-      notifications.show({
-        color: 'signal',
-        message: `Следующая дата — ${formatChargeDate(updatedSubscription.nextChargeDate)}`,
-        title: `${updatedSubscription.name} оплачена`,
-      });
-    } catch (markPaidError) {
-      notifications.show({
-        color: 'red',
-        message:
-          markPaidError instanceof ApiError
-            ? markPaidError.message
-            : 'Не удалось отметить подписку оплаченной.',
-        title: 'Ошибка',
-      });
-    } finally {
-      setMarkingPaidId(null);
-    }
-  };
   useSubscriptionWebMcp(handleSubscriptionCreated);
 
   const isArchiveMode = listMode === 'archive';
@@ -324,10 +283,22 @@ export function DashboardPage() {
       : hasForeignCurrencies && exchangeRates
         ? `${exchangeRates.stale ? 'Последний доступный' : 'Курс ЦБ РФ'} · ${formatRateDate(exchangeRates.effectiveDate)}`
         : `Прогноз по ${activeSubscriptions.length} активным подпискам`;
+  const currentPeriod = new Intl.DateTimeFormat('ru-RU', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
 
   return (
     <>
-      <AppShell header={{ height: { base: 68, sm: 76 } }} padding={0}>
+      <AppShell
+        header={{
+          height: {
+            base: 'calc(68px + var(--app-safe-top))',
+            sm: 'calc(76px + var(--app-safe-top))',
+          },
+        }}
+        padding={0}
+      >
         <AppShell.Header className={classes.header}>
           <Container size="lg" h="100%">
             <Group h="100%" justify="space-between">
@@ -341,30 +312,22 @@ export function DashboardPage() {
                 </Box>
               </Group>
 
-              <Group gap={10} wrap="nowrap">
-                <Box
-                  className={classes.systemStatus}
-                  data-state={healthError ? 'error' : health ? 'online' : 'loading'}
-                >
-                  {healthLoading ? (
-                    <Loader color="gray" size={10} />
-                  ) : (
-                    <span className={classes.statusDot} />
-                  )}
-                  <Text component="span">
-                    {healthError ? 'API offline' : health ? 'Все системы в норме' : 'Подключение'}
-                  </Text>
-                </Box>
-                <ActionIcon
-                  aria-label="Уведомления"
-                  className={classes.iconButton}
-                  radius="xl"
-                  size={42}
-                  variant="transparent"
-                >
-                  <IconBell size={19} stroke={1.8} />
-                </ActionIcon>
-              </Group>
+              <Box
+                aria-label={
+                  healthError ? 'API недоступен' : health ? 'Система работает' : 'Подключение'
+                }
+                className={classes.systemStatus}
+                data-state={healthError ? 'error' : health ? 'online' : 'loading'}
+              >
+                {healthLoading ? (
+                  <Loader color="gray" size={10} />
+                ) : (
+                  <span className={classes.statusDot} />
+                )}
+                <Text component="span">
+                  {healthError ? 'API offline' : health ? 'Все системы в норме' : 'Подключение'}
+                </Text>
+              </Box>
             </Group>
           </Container>
         </AppShell.Header>
@@ -400,7 +363,7 @@ export function DashboardPage() {
                 <Box className={classes.primaryMetric}>
                   <Group align="flex-start" justify="space-between" wrap="nowrap">
                     <Box>
-                      <Text className={classes.metricLabel}>Расходы в этом месяце</Text>
+                      <Text className={classes.metricLabel}>В среднем за месяц</Text>
                       <Text className={classes.primaryValue}>
                         {subscriptionsLoading || ratesPending
                           ? '···'
@@ -427,7 +390,7 @@ export function DashboardPage() {
                     <IconCalendarDue size={20} stroke={1.8} />
                   </Box>
                   <Text className={classes.metricLabel}>
-                    {upcomingDays !== null && upcomingDays < 0 ? 'Просрочено' : 'Следующее'}
+                    {upcomingDays !== null && upcomingDays < 0 ? 'Дата прошла' : 'Следующее'}
                   </Text>
                   <Text className={classes.metricValue}>
                     {upcomingSubscription
@@ -454,8 +417,6 @@ export function DashboardPage() {
               <UpcomingPaymentsPanel
                 hasError={Boolean(subscriptionsError)}
                 isLoading={subscriptionsLoading}
-                markingId={markingPaidId}
-                onMarkPaid={(subscription) => void markAsPaid(subscription)}
                 onRetry={() => void refreshSubscriptions()}
                 onSelect={openEditModal}
                 subscriptions={activeSubscriptions}
@@ -519,6 +480,7 @@ export function DashboardPage() {
                   />
                   <Select
                     allowDeselect
+                    aria-label="Фильтр по категории"
                     className={classes.filterSelect}
                     clearable
                     comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
@@ -536,6 +498,7 @@ export function DashboardPage() {
                   />
                   <Select
                     allowDeselect
+                    aria-label="Фильтр по способу оплаты"
                     className={classes.filterSelect}
                     clearable
                     comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
@@ -555,6 +518,7 @@ export function DashboardPage() {
                   />
                   <Select
                     allowDeselect={false}
+                    aria-label="Сортировка подписок"
                     className={classes.sortSelect}
                     comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
                     data={sortOptions}
@@ -699,20 +663,22 @@ export function DashboardPage() {
                                 : 'Без способа оплаты'}
                             </Text>
                           </Box>
-                          <Box className={classes.chargeDate}>
-                            <Text>
-                              {isArchiveMode ? 'Было запланировано' : 'Следующее списание'}
-                            </Text>
-                            <Text>{formatChargeDate(subscription.nextChargeDate)}</Text>
-                          </Box>
-                          <Box className={classes.subscriptionPrice}>
-                            <Text>{formatMoney(subscription.amount, subscription.currency)}</Text>
-                            <Text>
-                              {formatSubscriptionPeriod(
-                                subscription.billingPeriod,
-                                subscription.interval,
-                              )}
-                            </Text>
+                          <Box className={classes.subscriptionDetails}>
+                            <Box className={classes.chargeDate}>
+                              <Text>
+                                {isArchiveMode ? 'Было запланировано' : 'Следующее списание'}
+                              </Text>
+                              <Text>{formatChargeDate(subscription.nextChargeDate)}</Text>
+                            </Box>
+                            <Box className={classes.subscriptionPrice}>
+                              <Text>{formatMoney(subscription.amount, subscription.currency)}</Text>
+                              <Text>
+                                {formatSubscriptionPeriod(
+                                  subscription.billingPeriod,
+                                  subscription.interval,
+                                )}
+                              </Text>
+                            </Box>
                           </Box>
                           <Menu
                             position="bottom-end"
@@ -726,7 +692,7 @@ export function DashboardPage() {
                                 aria-label={`Действия для ${subscription.name}`}
                                 className={classes.subscriptionActions}
                                 radius="xl"
-                                size={36}
+                                size={44}
                                 variant="transparent"
                               >
                                 <IconDotsVertical size={18} />

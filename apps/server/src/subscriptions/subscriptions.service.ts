@@ -1,22 +1,15 @@
-import { calculateNextChargeDate } from '@subscription-manager/domain';
 import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+  calculateUpcomingChargeDate,
+  DEFAULT_TIMEZONE,
+  formatDateKeyInTimeZone,
+} from '@subscription-manager/domain';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { CategoryIcon } from '../categories/dto/create-category.dto';
-import {
-  NotificationChannel,
-  PaymentOccurrenceStatus,
-  Prisma,
-  RecurringPaymentStatus,
-} from '../generated/prisma/client';
+import { NotificationChannel, Prisma, RecurringPaymentStatus } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CurrentUserService } from '../users/current-user.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { MarkSubscriptionPaidDto } from './dto/mark-subscription-paid.dto';
 import { SubscriptionResponseDto } from './dto/subscription-response.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 
@@ -33,16 +26,26 @@ export class SubscriptionsService {
 
   async findAll(): Promise<SubscriptionResponseDto[]> {
     const userId = await this.currentUser.getId();
-    const subscriptions = await this.prisma.recurringPayment.findMany({
-      where: {
-        userId,
-        status: { not: RecurringPaymentStatus.ARCHIVED },
-      },
-      include: { category: true, paymentMethod: true },
-      orderBy: [{ nextChargeDate: 'asc' }, { createdAt: 'desc' }],
-    });
+    const [user, subscriptions] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
+      this.prisma.recurringPayment.findMany({
+        where: {
+          userId,
+          status: { not: RecurringPaymentStatus.ARCHIVED },
+        },
+        include: { category: true, paymentMethod: true },
+        orderBy: [{ nextChargeDate: 'asc' }, { createdAt: 'desc' }],
+      }),
+    ]);
+    const today = formatDateKeyInTimeZone(new Date(), user?.timezone ?? DEFAULT_TIMEZONE);
 
-    return subscriptions.map((subscription) => this.toResponse(subscription));
+    return subscriptions
+      .map((subscription) => this.toResponse(subscription, today))
+      .sort(
+        (left, right) =>
+          left.nextChargeDate.localeCompare(right.nextChargeDate) ||
+          right.createdAt.localeCompare(left.createdAt),
+      );
   }
 
   async findArchived(): Promise<SubscriptionResponseDto[]> {
@@ -119,86 +122,6 @@ export class SubscriptionsService {
     });
 
     return this.toResponse(subscription);
-  }
-
-  async markPaid(id: string, input: MarkSubscriptionPaidDto): Promise<SubscriptionResponseDto> {
-    const userId = await this.currentUser.getId();
-
-    return this.prisma.$transaction(async (transaction) => {
-      const subscription = await transaction.recurringPayment.findFirst({
-        where: {
-          id,
-          userId,
-          status: RecurringPaymentStatus.ACTIVE,
-        },
-        include: { category: true, paymentMethod: true },
-      });
-
-      if (!subscription) {
-        throw new NotFoundException('Active subscription not found');
-      }
-
-      const currentChargeDate = subscription.nextChargeDate.toISOString().slice(0, 10);
-
-      if (input.scheduledFor !== currentChargeDate) {
-        const existingOccurrence = await transaction.paymentOccurrence.findUnique({
-          where: {
-            recurringPaymentId_scheduledFor: {
-              recurringPaymentId: subscription.id,
-              scheduledFor: new Date(`${input.scheduledFor}T00:00:00.000Z`),
-            },
-          },
-        });
-
-        if (existingOccurrence?.status === PaymentOccurrenceStatus.PAID) {
-          return this.toResponse(subscription);
-        }
-
-        throw new ConflictException('Subscription charge date has changed');
-      }
-
-      const paidAt = new Date();
-      const scheduledFor = new Date(`${currentChargeDate}T00:00:00.000Z`);
-      const nextChargeDate = calculateNextChargeDate({
-        currentDate: currentChargeDate,
-        billingPeriod: subscription.billingPeriod,
-        interval: subscription.interval,
-        anchorDay: subscription.billingAnchorDay,
-      });
-
-      await transaction.paymentOccurrence.upsert({
-        where: {
-          recurringPaymentId_scheduledFor: {
-            recurringPaymentId: subscription.id,
-            scheduledFor,
-          },
-        },
-        create: {
-          recurringPaymentId: subscription.id,
-          scheduledFor,
-          amount: subscription.amount,
-          currency: subscription.currency,
-          status: PaymentOccurrenceStatus.PAID,
-          paidAt,
-        },
-        update: {
-          amount: subscription.amount,
-          currency: subscription.currency,
-          status: PaymentOccurrenceStatus.PAID,
-          paidAt,
-        },
-      });
-
-      const updatedSubscription = await transaction.recurringPayment.update({
-        where: { id: subscription.id },
-        data: {
-          nextChargeDate: new Date(`${nextChargeDate}T00:00:00.000Z`),
-        },
-        include: { category: true, paymentMethod: true },
-      });
-
-      return this.toResponse(updatedSubscription);
-    });
   }
 
   async archive(id: string): Promise<SubscriptionResponseDto> {
@@ -325,7 +248,9 @@ export class SubscriptionsService {
     }
   }
 
-  private toResponse(subscription: SubscriptionRecord): SubscriptionResponseDto {
+  private toResponse(subscription: SubscriptionRecord, asOfDate?: string): SubscriptionResponseDto {
+    const storedChargeDate = subscription.nextChargeDate.toISOString().slice(0, 10);
+
     return {
       id: subscription.id,
       name: subscription.name,
@@ -342,7 +267,16 @@ export class SubscriptionsService {
       currency: subscription.currency,
       billingPeriod: subscription.billingPeriod,
       interval: subscription.interval,
-      nextChargeDate: subscription.nextChargeDate.toISOString().slice(0, 10),
+      nextChargeDate:
+        asOfDate && subscription.status === RecurringPaymentStatus.ACTIVE
+          ? calculateUpcomingChargeDate({
+              currentDate: storedChargeDate,
+              asOfDate,
+              billingPeriod: subscription.billingPeriod,
+              interval: subscription.interval,
+              anchorDay: subscription.billingAnchorDay,
+            })
+          : storedChargeDate,
       status: subscription.status,
       paymentMethod: subscription.paymentMethod
         ? {

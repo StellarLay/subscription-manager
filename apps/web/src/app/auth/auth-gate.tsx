@@ -38,12 +38,39 @@ export function AuthGate({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    const webApp = window.Telegram?.WebApp;
+    const updateSafeArea = () => {
+      const root = document.documentElement;
+      for (const side of ['top', 'right', 'bottom', 'left'] as const) {
+        const inset = Math.max(
+          webApp?.safeAreaInset?.[side] ?? 0,
+          webApp?.contentSafeAreaInset?.[side] ?? 0,
+        );
+        root.style.setProperty(`--app-safe-${side}`, `${inset}px`);
+      }
+    };
 
-    window.Telegram?.WebApp.ready();
-    window.Telegram?.WebApp.expand();
-    void authenticate();
+    updateSafeArea();
+    webApp?.onEvent?.('safeAreaChanged', updateSafeArea);
+    webApp?.onEvent?.('contentSafeAreaChanged', updateSafeArea);
+    if (webApp?.isVersionAtLeast?.('6.1')) {
+      webApp.setHeaderColor?.('#07090d');
+      webApp.setBackgroundColor?.('#07090d');
+    }
+    if (webApp?.isVersionAtLeast?.('7.10')) {
+      webApp.setBottomBarColor?.('#07090d');
+    }
+    if (!started.current) {
+      started.current = true;
+      webApp?.ready();
+      webApp?.expand();
+      void authenticate();
+    }
+
+    return () => {
+      webApp?.offEvent?.('safeAreaChanged', updateSafeArea);
+      webApp?.offEvent?.('contentSafeAreaChanged', updateSafeArea);
+    };
   }, [authenticate]);
 
   if (state === 'ready') return children;
