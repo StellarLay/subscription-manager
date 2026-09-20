@@ -25,11 +25,12 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { DateInput } from '@mantine/dates';
+import { DatePickerInput } from '@mantine/dates';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircle, IconCalendar, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import 'dayjs/locale/ru';
 import { useEffect } from 'react';
 import { Controller, type DefaultValues, useForm, useWatch } from 'react-hook-form';
 
@@ -335,10 +336,11 @@ export function CreateSubscriptionModal({
                 control={control}
                 name="nextChargeDate"
                 render={({ field, fieldState }) => (
-                  <DateInput
+                  <DatePickerInput
                     error={fieldState.error ? 'Выбери дату списания' : undefined}
                     label="Следующее списание"
                     leftSection={<IconCalendar size={17} />}
+                    locale="ru"
                     minDate={new Date()}
                     onBlur={field.onBlur}
                     onChange={(value) => field.onChange(value ?? '')}
@@ -423,7 +425,7 @@ export function CreateSubscriptionModal({
                     onBlur={field.onBlur}
                     onChange={(value) => field.onChange(value ?? null)}
                     placeholder={categoriesLoading ? 'Загрузка...' : 'Без категории'}
-                    searchable
+                    searchable={!isMobile}
                     size="md"
                     value={field.value ?? null}
                   />
@@ -472,7 +474,7 @@ export function CreateSubscriptionModal({
                     onBlur={field.onBlur}
                     onChange={(value) => field.onChange(value ?? undefined)}
                     placeholder={paymentMethodsLoading ? 'Загрузка...' : 'Без способа оплаты'}
-                    searchable
+                    searchable={!isMobile}
                     size="md"
                     value={field.value ?? null}
                   />
@@ -481,7 +483,8 @@ export function CreateSubscriptionModal({
             </Box>
 
             <Text className={classes.reminderHint}>
-              Даты списаний обновляются автоматически. Напоминания добавим следующим этапом.
+              Даты списаний обновляются автоматически. Время напоминания можно выбрать в боте через
+              /settings.
             </Text>
 
             {errors.root?.message && (

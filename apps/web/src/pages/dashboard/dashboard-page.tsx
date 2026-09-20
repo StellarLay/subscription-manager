@@ -26,7 +26,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
   IconAlertTriangle,
@@ -112,6 +112,9 @@ function getCategoryTextColor(color: string): string {
 }
 
 export function DashboardPage() {
+  const isMobile = useMediaQuery('(max-width: 48em)', undefined, {
+    getInitialValueInEffect: false,
+  });
   const [listMode, setListMode] = useState<'active' | 'archive'>('active');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
@@ -510,7 +513,7 @@ export function DashboardPage() {
                           leftSection={<IconTag size={15} />}
                           onChange={setCategoryFilter}
                           placeholder="Все категории"
-                          searchable
+                          searchable={!isMobile}
                           size="sm"
                           value={categoryFilter}
                         />
@@ -531,7 +534,7 @@ export function DashboardPage() {
                           leftSection={<IconCreditCard size={15} />}
                           onChange={setPaymentMethodFilter}
                           placeholder="Все способы оплаты"
-                          searchable
+                          searchable={!isMobile}
                           size="sm"
                           value={paymentMethodFilter}
                         />

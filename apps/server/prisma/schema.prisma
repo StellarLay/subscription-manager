@@ -65,6 +65,7 @@ model User {
   telegramId           BigInt?            @unique
   botStartedAt         DateTime?          @db.Timestamptz(3)
   notificationsEnabled Boolean            @default(true)
+  reminderTimeMinutes  Int                @default(600)
   status               UserStatus         @default(ACTIVE)
   sessions             Session[]
   categories           Category[]
@@ -156,6 +157,7 @@ model ReminderRule {
   recurringPaymentId String                 @db.Uuid
   channel            NotificationChannel
   daysBefore         Int                    @default(1)
+  /// Retained for compatibility; Telegram delivery time now comes from User.reminderTimeMinutes.
   timeOfDayMinutes   Int                    @default(600)
   enabled            Boolean                @default(true)
   createdAt          DateTime               @default(now()) @db.Timestamptz(3)

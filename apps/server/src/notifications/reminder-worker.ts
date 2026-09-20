@@ -110,7 +110,11 @@ export class ReminderWorker {
           continue;
         }
 
-        const scheduledAt = dateTimeInTimeZoneToUtc(reminderDate, rule.timeOfDayMinutes, timezone);
+        const scheduledAt = dateTimeInTimeZoneToUtc(
+          reminderDate,
+          subscription.user.reminderTimeMinutes,
+          timezone,
+        );
         const occurrence = await this.prisma.paymentOccurrence.upsert({
           where: {
             recurringPaymentId_scheduledFor: {
@@ -225,7 +229,7 @@ export class ReminderWorker {
 
     const expectedAt = dateTimeInTimeZoneToUtc(
       addDays(chargeDate, -rule.daysBefore),
-      rule.timeOfDayMinutes,
+      user.reminderTimeMinutes,
       user.timezone || DEFAULT_TIMEZONE,
     );
     if (expectedAt > now) {

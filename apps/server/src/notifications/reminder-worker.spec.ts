@@ -38,6 +38,7 @@ function dueDelivery(overrides: Record<string, unknown> = {}) {
           status: 'ACTIVE',
           timezone: 'Europe/Moscow',
           notificationsEnabled: true,
+          reminderTimeMinutes: 600,
           botStartedAt: new Date('2026-09-01T00:00:00.000Z'),
           telegramId: 12345n,
         },
@@ -57,7 +58,7 @@ describe('ReminderWorker', () => {
       billingPeriod: 'MONTH',
       interval: 1,
       billingAnchorDay: 21,
-      user: { timezone: 'Europe/Moscow' },
+      user: { timezone: 'Europe/Moscow', reminderTimeMinutes: 600 },
       reminderRules: [
         {
           id: 'rule-id',
@@ -87,6 +88,53 @@ describe('ReminderWorker', () => {
     };
     expect(planned.create.idempotencyKey).toBe('rule-id:2026-09-21');
     expect(planned.create.scheduledAt).toEqual(new Date('2026-09-20T07:00:00.000Z'));
+  });
+
+  it('moves an unsent reminder to the time selected in the bot', async () => {
+    const update = vi.fn().mockResolvedValue({});
+    const prisma = {
+      recurringPayment: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'subscription-id',
+            amount: '799.00',
+            currency: 'RUB',
+            nextChargeDate: new Date('2026-09-21T00:00:00.000Z'),
+            billingPeriod: 'MONTH',
+            interval: 1,
+            billingAnchorDay: 21,
+            user: { timezone: 'Europe/Moscow', reminderTimeMinutes: 817 },
+            reminderRules: [
+              {
+                id: 'rule-id',
+                enabled: true,
+                channel: 'TELEGRAM',
+                daysBefore: 1,
+                timeOfDayMinutes: 600,
+              },
+            ],
+          },
+        ]),
+      },
+      paymentOccurrence: { upsert: vi.fn().mockResolvedValue({ id: 'occurrence-id' }) },
+      notificationDelivery: {
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        findUnique: vi.fn().mockResolvedValue({
+          status: 'PENDING',
+          attemptCount: 0,
+          scheduledAt: new Date('2026-09-20T07:00:00.000Z'),
+        }),
+        update,
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    } as unknown as PrismaService;
+
+    await new ReminderWorker(prisma, 'test-token', 'https://subsio.ru').tick(now);
+
+    expect(update).toHaveBeenCalledWith({
+      where: { idempotencyKey: 'rule-id:2026-09-21' },
+      data: { scheduledAt: new Date('2026-09-20T10:37:00.000Z') },
+    });
   });
 
   it('sends a due reminder with Mini App button and marks it sent', async () => {

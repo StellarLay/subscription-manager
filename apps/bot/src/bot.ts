@@ -9,6 +9,7 @@ import {
   MINI_APP_PENDING_MESSAGE,
   START_MESSAGE,
 } from './content.js';
+import { formatReminderTime } from './reminder-time.js';
 import type { BotUserSettings, BotUsers } from './users.js';
 
 const OPEN_APP_LABEL = 'Открыть Subsio';
@@ -20,19 +21,54 @@ function createAppKeyboard(miniAppUrl: string): InlineKeyboard {
     .text('Настройки напоминаний', 'settings:show');
 }
 
-function createSettingsKeyboard(enabled: boolean, miniAppUrl?: string): InlineKeyboard {
+function createSettingsKeyboard(settings: BotUserSettings, miniAppUrl?: string): InlineKeyboard {
   const keyboard = new InlineKeyboard().text(
-    enabled ? 'Приостановить напоминания' : 'Включить напоминания',
-    enabled ? 'settings:pause' : 'settings:resume',
+    settings.notificationsEnabled ? 'Приостановить напоминания' : 'Включить напоминания',
+    settings.notificationsEnabled ? 'settings:pause' : 'settings:resume',
   );
+  keyboard
+    .row()
+    .text(`Выбрать время · ${formatReminderTime(settings.reminderTimeMinutes)}`, 'time:open');
   if (miniAppUrl) keyboard.row().webApp(OPEN_APP_LABEL, miniAppUrl);
   return keyboard;
 }
 
 function settingsMessage(settings: BotUserSettings): string {
+  const timezone =
+    settings.timezone === 'Europe/Moscow' ? 'по Москве' : `в часовом поясе ${settings.timezone}`;
+  const schedule = `За день до списания в ${formatReminderTime(settings.reminderTimeMinutes)} ${timezone}.`;
   return settings.notificationsEnabled
-    ? '🔔 Напоминания включены. Я напишу за день до планового списания. Сейчас время отправки — 10:00 по Москве.'
-    : '🔕 Напоминания на паузе. Подписки и даты по-прежнему доступны в Subsio.';
+    ? `🔔 Напоминания включены. ${schedule}`
+    : `🔕 Напоминания на паузе. ${schedule} Подписки и даты по-прежнему доступны в Subsio.`;
+}
+
+function createHourKeyboard(currentMinutes: number): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+  const currentHour = Math.floor(currentMinutes / 60);
+  for (let hour = 0; hour < 24; hour += 1) {
+    const label = `${String(hour).padStart(2, '0')}${hour === currentHour ? ' ✓' : ''}`;
+    keyboard.text(label, `time:h:${hour}`);
+    if ((hour + 1) % 6 === 0) keyboard.row();
+  }
+  return keyboard.text('Отмена', 'settings:show');
+}
+
+function createMinuteTensKeyboard(hour: number): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+  for (let tens = 0; tens < 6; tens += 1) {
+    keyboard.text(`${tens}0–${tens}9`, `time:t:${hour}:${tens}`);
+    if ((tens + 1) % 3 === 0) keyboard.row();
+  }
+  return keyboard.text('← Часы', 'time:open').text('Отмена', 'settings:show');
+}
+
+function createMinuteUnitsKeyboard(hour: number, tens: number): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+  for (let unit = 0; unit < 10; unit += 1) {
+    keyboard.text(String(unit), `time:u:${hour}:${tens}:${unit}`);
+    if ((unit + 1) % 5 === 0) keyboard.row();
+  }
+  return keyboard.text('← Десятки минут', `time:h:${hour}`).row().text('Отмена', 'settings:show');
 }
 
 export function createSubsioBot(token: string, environment: BotEnvironment, users: BotUsers): Bot {
@@ -74,10 +110,7 @@ export function createSubsioBot(token: string, environment: BotEnvironment, user
       return;
     }
     await context.reply(settingsMessage(settings), {
-      reply_markup: createSettingsKeyboard(
-        settings.notificationsEnabled,
-        environment.TELEGRAM_MINI_APP_URL,
-      ),
+      reply_markup: createSettingsKeyboard(settings, environment.TELEGRAM_MINI_APP_URL),
     });
   });
 
@@ -94,10 +127,7 @@ export function createSubsioBot(token: string, environment: BotEnvironment, user
           : 'Сначала отправь /start, чтобы включить напоминания.',
         settings
           ? {
-              reply_markup: createSettingsKeyboard(
-                settings.notificationsEnabled,
-                environment.TELEGRAM_MINI_APP_URL,
-              ),
+              reply_markup: createSettingsKeyboard(settings, environment.TELEGRAM_MINI_APP_URL),
             }
           : undefined,
       );
@@ -119,13 +149,86 @@ export function createSubsioBot(token: string, environment: BotEnvironment, user
       await context.reply('Сначала отправь /start, чтобы включить напоминания.');
       return;
     }
-    await context.reply(settingsMessage(settings), {
-      reply_markup: createSettingsKeyboard(
-        settings.notificationsEnabled,
-        environment.TELEGRAM_MINI_APP_URL,
-      ),
+    await context.editMessageText(settingsMessage(settings), {
+      reply_markup: createSettingsKeyboard(settings, environment.TELEGRAM_MINI_APP_URL),
     });
   });
+
+  bot.callbackQuery(
+    /^time:(open|h:\d{1,2}|t:\d{1,2}:[0-5]|u:\d{1,2}:[0-5]:\d|save:\d{1,4})$/,
+    async (context) => {
+      if (context.chat?.type !== 'private') {
+        await context.answerCallbackQuery();
+        return;
+      }
+      await context.answerCallbackQuery();
+      const settings = await users.get(context.from.id);
+      if (!settings || settings.status !== 'ACTIVE') {
+        await context.reply('Сначала отправь /start, чтобы настроить напоминания.');
+        return;
+      }
+
+      const [action, ...values] = context.match[1]!.split(':');
+      const hour = Number(values[0]);
+      if (action === 'open') {
+        await context.editMessageText('Во сколько присылать напоминание? Выбери час (00–23):', {
+          reply_markup: createHourKeyboard(settings.reminderTimeMinutes),
+        });
+        return;
+      }
+      if (action === 'h' && hour >= 0 && hour <= 23) {
+        await context.editMessageText(
+          `Час — ${String(hour).padStart(2, '0')}. Выбери десятки минут:`,
+          { reply_markup: createMinuteTensKeyboard(hour) },
+        );
+        return;
+      }
+      const tens = Number(values[1]);
+      if (action === 't' && hour >= 0 && hour <= 23 && tens >= 0 && tens <= 5) {
+        await context.editMessageText(
+          `Время — ${String(hour).padStart(2, '0')}:${tens}_. Выбери последнюю цифру минут:`,
+          { reply_markup: createMinuteUnitsKeyboard(hour, tens) },
+        );
+        return;
+      }
+      const unit = Number(values[2]);
+      if (
+        action === 'u' &&
+        hour >= 0 &&
+        hour <= 23 &&
+        tens >= 0 &&
+        tens <= 5 &&
+        unit >= 0 &&
+        unit <= 9
+      ) {
+        const minutes = hour * 60 + tens * 10 + unit;
+        await context.editMessageText(
+          `Напоминать за день до списания в ${formatReminderTime(minutes)}?`,
+          {
+            reply_markup: new InlineKeyboard()
+              .text('Сохранить', `time:save:${minutes}`)
+              .row()
+              .text('Выбрать заново', 'time:open')
+              .text('Отмена', 'settings:show'),
+          },
+        );
+        return;
+      }
+      if (action === 'save') {
+        const minutes = Number(values[0]);
+        if (minutes >= 0 && minutes <= 1439) {
+          const updated = await users.setReminderTime(context.from.id, minutes);
+          if (updated) {
+            await context.editMessageText(`Время сохранено.\n\n${settingsMessage(updated)}`, {
+              reply_markup: createSettingsKeyboard(updated, environment.TELEGRAM_MINI_APP_URL),
+            });
+            return;
+          }
+        }
+      }
+      await context.reply('Не получилось выбрать время. Открой /settings и попробуй снова.');
+    },
+  );
 
   bot.on('message:text', async (context) => {
     if (context.chat.type !== 'private') return;
