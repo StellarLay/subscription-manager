@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+// A dynamic import here also creates a cyclic shared chunk in the production build.
+import { createSubscription, CreateSubscriptionBody } from '@subscription-manager/api-client';
 
 const createSubscriptionInputSchema = {
   additionalProperties: false,
@@ -38,8 +40,6 @@ export function useSubscriptionWebMcp(onCreated: () => Promise<unknown>): void {
           annotations: { readOnlyHint: false, untrustedContentHint: true },
           description: 'Создаёт регулярную подписку и обновляет список подписок на текущем экране.',
           async execute(input) {
-            const { createSubscription, CreateSubscriptionBody } =
-              await import('@subscription-manager/api-client');
             const values = CreateSubscriptionBody.parse(input);
             const subscription = await createSubscription(values);
             await onCreated();

@@ -48,9 +48,13 @@ import {
   IconWallet,
   IconX,
 } from '@tabler/icons-react';
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
+// Keep the modals eager: Vite 8 currently splits their shared dependencies into cyclic chunks.
+import { ArchiveSubscriptionModal } from '@/features/subscriptions/archive-subscription/archive-subscription-modal';
+import { CreateSubscriptionModal } from '@/features/subscriptions/create-subscription/create-subscription-modal';
+import { DeleteSubscriptionModal } from '@/features/subscriptions/delete-subscription/delete-subscription-modal';
 import {
   calculateMonthlyRubTotal,
   formatSubscriptionPeriod,
@@ -61,27 +65,6 @@ import { getDaysUntilCharge } from '@/widgets/upcoming-payments/upcoming-payment
 
 import classes from './dashboard-page.module.css';
 import { filterAndSortSubscriptions, type SubscriptionSort } from './subscription-list';
-
-const CreateSubscriptionModal = lazy(async () => {
-  const module =
-    await import('@/features/subscriptions/create-subscription/create-subscription-modal');
-
-  return { default: module.CreateSubscriptionModal };
-});
-
-const ArchiveSubscriptionModal = lazy(async () => {
-  const module =
-    await import('@/features/subscriptions/archive-subscription/archive-subscription-modal');
-
-  return { default: module.ArchiveSubscriptionModal };
-});
-
-const DeleteSubscriptionModal = lazy(async () => {
-  const module =
-    await import('@/features/subscriptions/delete-subscription/delete-subscription-modal');
-
-  return { default: module.DeleteSubscriptionModal };
-});
 
 const currentPeriod = new Intl.DateTimeFormat('ru-RU', {
   month: 'long',
@@ -802,29 +785,27 @@ export function DashboardPage() {
         </AppShell.Main>
       </AppShell>
 
-      <Suspense fallback={null}>
-        <CreateSubscriptionModal
-          onClose={() => {
-            createModal.close();
-            editModal.close();
-          }}
-          onSaved={() => void handleSubscriptionCreated()}
-          opened={createOpened || editOpened}
-          subscription={editingSubscription}
-        />
-        <ArchiveSubscriptionModal
-          onArchived={(subscription) => void handleSubscriptionArchived(subscription)}
-          onClose={archiveModal.close}
-          opened={archiveOpened}
-          subscription={archivingSubscription}
-        />
-        <DeleteSubscriptionModal
-          onClose={deleteModal.close}
-          onDeleted={(subscription) => void handleSubscriptionDeleted(subscription)}
-          opened={deleteOpened}
-          subscription={deletingSubscription}
-        />
-      </Suspense>
+      <CreateSubscriptionModal
+        onClose={() => {
+          createModal.close();
+          editModal.close();
+        }}
+        onSaved={() => void handleSubscriptionCreated()}
+        opened={createOpened || editOpened}
+        subscription={editingSubscription}
+      />
+      <ArchiveSubscriptionModal
+        onArchived={(subscription) => void handleSubscriptionArchived(subscription)}
+        onClose={archiveModal.close}
+        opened={archiveOpened}
+        subscription={archivingSubscription}
+      />
+      <DeleteSubscriptionModal
+        onClose={deleteModal.close}
+        onDeleted={(subscription) => void handleSubscriptionDeleted(subscription)}
+        opened={deleteOpened}
+        subscription={deletingSubscription}
+      />
     </>
   );
 }
