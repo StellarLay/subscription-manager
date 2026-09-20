@@ -101,6 +101,7 @@ services:
       pnpm --filter @subscription-manager/bot run dev"
     environment:
       CI: 'true'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-subscription_manager}:${POSTGRES_PASSWORD:-subscription_manager}@postgres:5432/${POSTGRES_DB:-subscription_manager}?schema=public
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-SubsioAppBot}
       TELEGRAM_MINI_APP_URL: ${TELEGRAM_MINI_APP_URL:-}
@@ -112,8 +113,31 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  worker:
+    <<: *dev-app
+    profiles: [notifications]
+    command: >-
+      sh -c "pnpm install --frozen-lockfile &&
+      pnpm --filter @subscription-manager/domain run build &&
+      pnpm --filter @subscription-manager/server run db:generate &&
+      pnpm --filter @subscription-manager/server run build &&
+      pnpm --filter @subscription-manager/server run start:worker"
+    environment:
+      CI: 'true'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-subscription_manager}:${POSTGRES_PASSWORD:-subscription_manager}@postgres:5432/${POSTGRES_DB:-subscription_manager}?schema=public
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_MINI_APP_URL: ${TELEGRAM_MINI_APP_URL:-}
+    volumes:
+      - .:/workspace
+      - worker_node_modules:/workspace/node_modules
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: on-failure
+
 volumes:
   bot_node_modules:
   postgres_data:
   server_node_modules:
   web_node_modules:
+  worker_node_modules:

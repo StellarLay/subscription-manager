@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateNextChargeDate,
   calculateUpcomingChargeDate,
+  dateTimeInTimeZoneToUtc,
   formatDateKeyInTimeZone,
 } from './recurrence';
 
@@ -163,5 +164,22 @@ describe('calculateUpcomingChargeDate', () => {
         anchorDay: 29,
       }),
     ).toBe('2028-02-29');
+  });
+});
+
+describe('dateTimeInTimeZoneToUtc', () => {
+  it('converts the default 10:00 reminder in Moscow to UTC', () => {
+    expect(dateTimeInTimeZoneToUtc('2026-09-20', 600, 'Europe/Moscow').toISOString()).toBe(
+      '2026-09-20T07:00:00.000Z',
+    );
+  });
+
+  it('accounts for daylight saving time in the user timezone', () => {
+    expect(dateTimeInTimeZoneToUtc('2026-03-07', 600, 'America/New_York').toISOString()).toBe(
+      '2026-03-07T15:00:00.000Z',
+    );
+    expect(dateTimeInTimeZoneToUtc('2026-03-08', 600, 'America/New_York').toISOString()).toBe(
+      '2026-03-08T14:00:00.000Z',
+    );
   });
 });

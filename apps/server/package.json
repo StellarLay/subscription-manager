@@ -7,6 +7,7 @@
     "dev:docker": "pnpm --filter @subscription-manager/domain run build && prisma migrate deploy && prisma generate && nest start --watch",
     "build": "pnpm --filter @subscription-manager/domain run build && prisma generate && nest build",
     "start": "node dist/src/main.js",
+    "start:worker": "node dist/src/notifications/worker.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "prisma generate && tsc --noEmit",

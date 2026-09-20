@@ -82,7 +82,7 @@ export class SubscriptionsService {
         paymentMethodId: input.paymentMethodId || null,
         reminderRules: {
           create: {
-            channel: NotificationChannel.EMAIL,
+            channel: NotificationChannel.TELEGRAM,
             daysBefore: 1,
             timeOfDayMinutes: 600,
           },

@@ -1,5 +1,6 @@
 import { createSubsioBot, configureSubsioBot } from './bot.js';
 import { loadBotEnvironment } from './config.js';
+import { BotUsers } from './users.js';
 
 async function bootstrap(): Promise<void> {
   const environment = loadBotEnvironment();
@@ -9,19 +10,23 @@ async function bootstrap(): Promise<void> {
     );
     return;
   }
+  if (!environment.DATABASE_URL) throw new Error('DATABASE_URL is required for Telegram bot');
 
-  const bot = createSubsioBot(environment.TELEGRAM_BOT_TOKEN, environment);
+  const users = new BotUsers(environment.DATABASE_URL);
+  const bot = createSubsioBot(environment.TELEGRAM_BOT_TOKEN, environment, users);
 
   process.once('SIGINT', () => {
     void bot.stop();
+    void users.close();
   });
   process.once('SIGTERM', () => {
     void bot.stop();
+    void users.close();
   });
 
   await configureSubsioBot(bot, environment);
   await bot.start({
-    allowed_updates: ['message'],
+    allowed_updates: ['message', 'callback_query'],
     onStart: (botInfo) => {
       console.info(
         JSON.stringify({

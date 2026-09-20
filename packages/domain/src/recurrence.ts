@@ -57,6 +57,52 @@ export function formatDateKeyInTimeZone(date: Date, timeZone: string): string {
   return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
+export function dateTimeInTimeZoneToUtc(
+  dateKey: string,
+  minutesAfterMidnight: number,
+  timeZone: string,
+): Date {
+  const date = parseDateKey(dateKey);
+  if (
+    !Number.isInteger(minutesAfterMidnight) ||
+    minutesAfterMidnight < 0 ||
+    minutesAfterMidnight >= 1440
+  ) {
+    throw new Error('Time of day must be between 00:00 and 23:59');
+  }
+
+  const target = date.getTime() + minutesAfterMidnight * 60_000;
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  let candidate = target;
+
+  // Morning reminder times are unambiguous even in time zones with DST.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const parts = formatter.formatToParts(new Date(candidate));
+    const numberPart = (type: Intl.DateTimeFormatPartTypes) =>
+      Number(parts.find((part) => part.type === type)?.value);
+    const observed = Date.UTC(
+      numberPart('year'),
+      numberPart('month') - 1,
+      numberPart('day'),
+      numberPart('hour'),
+      numberPart('minute'),
+    );
+    const difference = target - observed;
+    candidate += difference;
+    if (difference === 0) break;
+  }
+
+  return new Date(candidate);
+}
+
 function addDays(date: Date, days: number): Date {
   const result = new Date(date);
   result.setUTCDate(result.getUTCDate() + days);

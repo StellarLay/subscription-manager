@@ -16,6 +16,7 @@ const optionalHttpsUrl = optionalString.pipe(
 );
 
 const botEnvironmentSchema = z.object({
+  DATABASE_URL: optionalString,
   TELEGRAM_BOT_TOKEN: optionalString,
   TELEGRAM_BOT_USERNAME: z
     .string()

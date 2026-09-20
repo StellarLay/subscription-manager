@@ -30,37 +30,6 @@
   line-height: 1;
 }
 
-.systemStatus {
-  display: flex;
-  align-items: center;
-  min-height: 34px;
-  gap: 8px;
-  padding: 0 12px;
-  color: #a7ada5;
-  border: 1px solid var(--app-border);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.statusDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--app-signal);
-  box-shadow: 0 0 0 4px rgba(115, 255, 91, 0.08);
-}
-
-.systemStatus[data-state='error'] .statusDot {
-  background: #ff5d5d;
-  box-shadow: 0 0 0 4px rgba(255, 93, 93, 0.08);
-}
-
-.systemStatus p,
-.systemStatus :global(.mantine-Text-root) {
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
 .main {
   position: relative;
   min-height: 100vh;
@@ -301,11 +270,61 @@
 }
 
 .filtersBar {
-  display: grid;
-  grid-template-columns: minmax(210px, 1.5fr) repeat(2, minmax(170px, 1fr)) minmax(190px, 1fr) auto;
+  display: flex;
   gap: 8px;
   align-items: center;
   padding: 14px 2px 0;
+}
+
+.searchInput {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.filtersButton {
+  position: relative;
+  flex: 0 0 auto;
+  color: #aeb5aa;
+  border-color: var(--app-border);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.filtersButton[data-active='true'] {
+  color: var(--app-signal);
+  border-color: rgba(115, 255, 91, 0.35);
+}
+
+.filterCount {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  color: #071006;
+  border-radius: 50%;
+  background: var(--app-signal);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.filtersDropdown {
+  padding: 16px;
+  border-color: var(--app-border-strong);
+  border-radius: 16px;
+  background: #141920;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.45);
+}
+
+.filtersDropdown :global(.mantine-InputWrapper-label) {
+  margin-bottom: 6px;
+}
+
+.filtersTitle {
+  color: var(--app-text);
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .searchInput :global(.mantine-Input-input),
@@ -324,6 +343,7 @@
 
 .resetFilters {
   color: #858c83;
+  align-self: flex-start;
 }
 
 .resetFilters:hover {
@@ -601,20 +621,6 @@
   .primaryMetric {
     grid-column: 1 / -1;
   }
-
-  .filtersBar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .searchInput,
-  .sortSelect,
-  .resetFilters {
-    grid-column: 1 / -1;
-  }
-
-  .resetFilters {
-    justify-self: end;
-  }
 }
 
 @media (max-width: 48em) {
@@ -633,16 +639,8 @@
     border-radius: 11px;
   }
 
-  .brandCaption,
-  .systemStatus :global(.mantine-Text-root) {
+  .brandCaption {
     display: none;
-  }
-
-  .systemStatus {
-    min-width: 38px;
-    min-height: 38px;
-    justify-content: center;
-    padding: 0;
   }
 
   .content {
@@ -730,7 +728,6 @@
   }
 
   .filtersBar {
-    grid-template-columns: 1fr;
     padding-top: 12px;
   }
 
@@ -739,15 +736,9 @@
     font-size: 16px;
   }
 
-  .searchInput,
-  .filterSelect,
-  .sortSelect {
-    grid-column: auto;
-    width: 100%;
-  }
-
-  .resetFilters {
-    justify-self: end;
+  .filtersButton {
+    width: 44px;
+    height: 44px;
   }
 
   .listTab {

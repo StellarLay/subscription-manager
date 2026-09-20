@@ -5,7 +5,6 @@ import {
   useGetCategories,
   useGetArchivedSubscriptions,
   useGetExchangeRates,
-  useGetHealth,
   useGetPaymentMethods,
   useGetSubscriptions,
 } from '@subscription-manager/api-client';
@@ -19,6 +18,7 @@ import {
   Group,
   Loader,
   Menu,
+  Popover,
   Select,
   Skeleton,
   Stack,
@@ -30,6 +30,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
   IconAlertTriangle,
+  IconAdjustmentsHorizontal,
   IconArchive,
   IconArrowsSort,
   IconCalendarDue,
@@ -116,6 +117,7 @@ export function DashboardPage() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SubscriptionSort>('date-asc');
+  const [filtersOpened, setFiltersOpened] = useState(false);
   const [createOpened, createModal] = useDisclosure(false);
   const [editOpened, editModal] = useDisclosure(false);
   const [archiveOpened, archiveModal] = useDisclosure(false);
@@ -129,7 +131,6 @@ export function DashboardPage() {
   const [deletingSubscription, setDeletingSubscription] = useState<SubscriptionResponseDto | null>(
     null,
   );
-  const { data: health, error: healthError, isLoading: healthLoading } = useGetHealth();
   const {
     data: exchangeRates,
     error: exchangeRatesError,
@@ -251,6 +252,10 @@ export function DashboardPage() {
     [categoryFilter, paymentMethodFilter, searchQuery, sortMode, unfilteredDisplayedSubscriptions],
   );
   const hasListFilters = Boolean(searchQuery.trim() || categoryFilter || paymentMethodFilter);
+  const activeFilterCount =
+    Number(Boolean(categoryFilter)) +
+    Number(Boolean(paymentMethodFilter)) +
+    Number(sortMode !== 'date-asc');
   const resetListFilters = () => {
     setSearchQuery('');
     setCategoryFilter(null);
@@ -311,23 +316,6 @@ export function DashboardPage() {
                   <Text className={classes.brandCaption}>регулярные платежи</Text>
                 </Box>
               </Group>
-
-              <Box
-                aria-label={
-                  healthError ? 'API недоступен' : health ? 'Система работает' : 'Подключение'
-                }
-                className={classes.systemStatus}
-                data-state={healthError ? 'error' : health ? 'online' : 'loading'}
-              >
-                {healthLoading ? (
-                  <Loader color="gray" size={10} />
-                ) : (
-                  <span className={classes.statusDot} />
-                )}
-                <Text component="span">
-                  {healthError ? 'API offline' : health ? 'Все системы в норме' : 'Подключение'}
-                </Text>
-              </Box>
             </Group>
           </Container>
         </AppShell.Header>
@@ -461,7 +449,7 @@ export function DashboardPage() {
                     className={classes.searchInput}
                     leftSection={<IconSearch size={16} />}
                     onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                    placeholder="Название, категория или карта"
+                    placeholder="Поиск подписок"
                     rightSection={
                       searchQuery ? (
                         <ActionIcon
@@ -478,67 +466,107 @@ export function DashboardPage() {
                     size="sm"
                     value={searchQuery}
                   />
-                  <Select
-                    allowDeselect
-                    aria-label="Фильтр по категории"
-                    className={classes.filterSelect}
-                    clearable
-                    comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
-                    data={categories.map((category) => ({
-                      label: category.name,
-                      value: category.id,
-                    }))}
-                    disabled={categoriesLoading}
-                    leftSection={<IconTag size={15} />}
-                    onChange={setCategoryFilter}
-                    placeholder="Все категории"
-                    searchable
-                    size="sm"
-                    value={categoryFilter}
-                  />
-                  <Select
-                    allowDeselect
-                    aria-label="Фильтр по способу оплаты"
-                    className={classes.filterSelect}
-                    clearable
-                    comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
-                    data={paymentMethods.map((paymentMethod) => ({
-                      label: paymentMethod.lastFour
-                        ? `${paymentMethod.name} • ${paymentMethod.lastFour}`
-                        : paymentMethod.name,
-                      value: paymentMethod.id,
-                    }))}
-                    disabled={paymentMethodsLoading}
-                    leftSection={<IconCreditCard size={15} />}
-                    onChange={setPaymentMethodFilter}
-                    placeholder="Все способы оплаты"
-                    searchable
-                    size="sm"
-                    value={paymentMethodFilter}
-                  />
-                  <Select
-                    allowDeselect={false}
-                    aria-label="Сортировка подписок"
-                    className={classes.sortSelect}
-                    comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
-                    data={sortOptions}
-                    leftSection={<IconArrowsSort size={15} />}
-                    onChange={(value) => setSortMode((value as SubscriptionSort) ?? 'date-asc')}
-                    size="sm"
-                    value={sortMode}
-                  />
-                  {hasListFilters && (
-                    <Button
-                      className={classes.resetFilters}
-                      leftSection={<IconX size={14} />}
-                      onClick={resetListFilters}
-                      radius="xl"
-                      size="compact-sm"
-                      variant="subtle"
-                    >
-                      Сбросить
-                    </Button>
-                  )}
+                  <Popover
+                    opened={filtersOpened}
+                    onChange={setFiltersOpened}
+                    position="bottom-end"
+                    shadow="xl"
+                    transitionProps={{ duration: 0 }}
+                    width={300}
+                    withinPortal={false}
+                  >
+                    <Popover.Target>
+                      <ActionIcon
+                        aria-label={`Фильтры и сортировка${activeFilterCount ? `, активно: ${activeFilterCount}` : ''}`}
+                        aria-expanded={filtersOpened}
+                        className={classes.filtersButton}
+                        data-active={activeFilterCount > 0 || undefined}
+                        onClick={() => setFiltersOpened((opened) => !opened)}
+                        radius="md"
+                        size={36}
+                        variant="default"
+                      >
+                        <IconAdjustmentsHorizontal size={18} stroke={1.8} />
+                        {activeFilterCount > 0 && (
+                          <span className={classes.filterCount}>{activeFilterCount}</span>
+                        )}
+                      </ActionIcon>
+                    </Popover.Target>
+                    <Popover.Dropdown className={classes.filtersDropdown}>
+                      <Stack gap={12}>
+                        <Text className={classes.filtersTitle}>Фильтры и сортировка</Text>
+                        <Select
+                          allowDeselect
+                          aria-label="Фильтр по категории"
+                          className={classes.filterSelect}
+                          clearable
+                          comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                          data={categories.map((category) => ({
+                            label: category.name,
+                            value: category.id,
+                          }))}
+                          disabled={categoriesLoading}
+                          label="Категория"
+                          leftSection={<IconTag size={15} />}
+                          onChange={setCategoryFilter}
+                          placeholder="Все категории"
+                          searchable
+                          size="sm"
+                          value={categoryFilter}
+                        />
+                        <Select
+                          allowDeselect
+                          aria-label="Фильтр по способу оплаты"
+                          className={classes.filterSelect}
+                          clearable
+                          comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                          data={paymentMethods.map((paymentMethod) => ({
+                            label: paymentMethod.lastFour
+                              ? `${paymentMethod.name} • ${paymentMethod.lastFour}`
+                              : paymentMethod.name,
+                            value: paymentMethod.id,
+                          }))}
+                          disabled={paymentMethodsLoading}
+                          label="Способ оплаты"
+                          leftSection={<IconCreditCard size={15} />}
+                          onChange={setPaymentMethodFilter}
+                          placeholder="Все способы оплаты"
+                          searchable
+                          size="sm"
+                          value={paymentMethodFilter}
+                        />
+                        <Select
+                          allowDeselect={false}
+                          aria-label="Сортировка подписок"
+                          className={classes.sortSelect}
+                          comboboxProps={{ transitionProps: { duration: 0 }, withinPortal: false }}
+                          data={sortOptions}
+                          label="Сортировка"
+                          leftSection={<IconArrowsSort size={15} />}
+                          onChange={(value) =>
+                            setSortMode((value as SubscriptionSort) ?? 'date-asc')
+                          }
+                          size="sm"
+                          value={sortMode}
+                        />
+                        {(hasListFilters || sortMode !== 'date-asc') && (
+                          <Button
+                            className={classes.resetFilters}
+                            leftSection={<IconX size={14} />}
+                            onClick={() => {
+                              resetListFilters();
+                              setSortMode('date-asc');
+                            }}
+                            radius="md"
+                            size="compact-sm"
+                            variant="subtle"
+                          >
+                            Сбросить всё
+                          </Button>
+                        )}
+                      </Stack>
+                    </Popover.Dropdown>
+                  </Popover>
                 </Box>
 
                 {displayedSubscriptionsLoading && (

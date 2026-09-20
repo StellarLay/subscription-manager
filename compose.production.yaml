@@ -14,6 +14,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '127.0.0.1:${POSTGRES_LOCAL_PORT:-54329}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -61,8 +63,22 @@ services:
     network_mode: host
     environment:
       NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_LOCAL_PORT:-54329}/${POSTGRES_DB}?schema=public
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-SubsioAppBot}
+      TELEGRAM_MINI_APP_URL: https://${APP_HOST}
+    depends_on:
+      server:
+        condition: service_healthy
+
+  worker:
+    <<: *node-app
+    command: pnpm --filter @subscription-manager/server run start:worker
+    network_mode: host
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_LOCAL_PORT:-54329}/${POSTGRES_DB}?schema=public
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_MINI_APP_URL: https://${APP_HOST}
     depends_on:
       server:
