@@ -63,6 +63,7 @@ services:
     network_mode: host
     environment:
       NODE_ENV: production
+      NODE_OPTIONS: --dns-result-order=ipv6first --no-network-family-autoselection
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_LOCAL_PORT:-54329}/${POSTGRES_DB}?schema=public
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-SubsioAppBot}
@@ -77,6 +78,7 @@ services:
     network_mode: host
     environment:
       NODE_ENV: production
+      NODE_OPTIONS: --dns-result-order=ipv6first --no-network-family-autoselection
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_LOCAL_PORT:-54329}/${POSTGRES_DB}?schema=public
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_MINI_APP_URL: https://${APP_HOST}
