@@ -71,6 +71,8 @@ model User {
   categories           Category[]
   paymentMethods       PaymentMethod[]
   payments             RecurringPayment[]
+  assistantDraft        AssistantDraft?
+  assistantUsage        AssistantUsage[]
   createdAt            DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt            DateTime           @updatedAt @db.Timestamptz(3)
 }
@@ -141,6 +143,7 @@ model RecurringPayment {
   archivedAt       DateTime?              @db.Timestamptz(3)
   createdAt        DateTime               @default(now()) @db.Timestamptz(3)
   updatedAt        DateTime               @updatedAt @db.Timestamptz(3)
+  assistantDraftId String?                @unique @db.Uuid
   user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   paymentMethod    PaymentMethod?         @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
   category         Category?              @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -150,6 +153,26 @@ model RecurringPayment {
   @@index([userId, status, nextChargeDate])
   @@index([userId, paymentMethodId])
   @@index([userId, categoryId])
+}
+
+model AssistantDraft {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  payload   Json
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AssistantUsage {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  day    String @db.VarChar(10)
+  count  Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
 }
 
 model ReminderRule {

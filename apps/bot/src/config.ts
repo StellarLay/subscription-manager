@@ -25,6 +25,8 @@ const botEnvironmentSchema = z.object({
     .pipe(z.string().regex(/^[A-Za-z0-9_]{5,32}$/))
     .default('SubsioAppBot'),
   TELEGRAM_MINI_APP_URL: optionalHttpsUrl,
+  ASSISTANT_API_URL: optionalString.pipe(z.url().optional()),
+  ASSISTANT_BOT_TOKEN: optionalString.pipe(z.string().min(32).optional()),
 });
 
 export type BotEnvironment = z.infer<typeof botEnvironmentSchema>;

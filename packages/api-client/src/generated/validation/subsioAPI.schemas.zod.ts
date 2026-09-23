@@ -23,26 +23,52 @@ export const AuthUserResponseDto = zod.object({
 export type AuthUserResponseDto = zod.input<typeof AuthUserResponseDto>;
 export type AuthUserResponseDtoOutput = zod.output<typeof AuthUserResponseDto>;
 
-export const ExchangeRatesResponseDto = zod.object({
-  "baseCurrency": zod.string(),
-  "rates": zod.record(zod.string(), zod.number()),
-  "effectiveDate": zod.iso.date(),
-  "fetchedAt": zod.iso.datetime({"offset":true}),
-  "stale": zod.boolean(),
-  "source": zod.string()
+export const AssistantStatusDto = zod.object({
+  "available": zod.boolean()
 });
 
-export type ExchangeRatesResponseDto = zod.input<typeof ExchangeRatesResponseDto>;
-export type ExchangeRatesResponseDtoOutput = zod.output<typeof ExchangeRatesResponseDto>;
+export type AssistantStatusDto = zod.input<typeof AssistantStatusDto>;
+export type AssistantStatusDtoOutput = zod.output<typeof AssistantStatusDto>;
 
-export const HealthResponseDto = zod.object({
-  "status": zod.enum(['ok']),
-  "database": zod.enum(['connected']),
-  "timestamp": zod.iso.datetime({"offset":true})
+export const assistantMessageDtoMessageMax = 1000;
+
+
+
+export const AssistantMessageDto = zod.object({
+  "message": zod.string().min(1).max(assistantMessageDtoMessageMax)
 });
 
-export type HealthResponseDto = zod.input<typeof HealthResponseDto>;
-export type HealthResponseDtoOutput = zod.output<typeof HealthResponseDto>;
+export type AssistantMessageDto = zod.input<typeof AssistantMessageDto>;
+export type AssistantMessageDtoOutput = zod.output<typeof AssistantMessageDto>;
+
+export const AssistantDraftDto = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string().nullish(),
+  "amount": zod.number().nullish(),
+  "currency": zod.string().nullish(),
+  "billingPeriod": zod.string().nullish(),
+  "nextChargeDate": zod.string().nullish(),
+  "paymentMethodLabel": zod.string().nullish()
+});
+
+export type AssistantDraftDto = zod.input<typeof AssistantDraftDto>;
+export type AssistantDraftDtoOutput = zod.output<typeof AssistantDraftDto>;
+
+export const AssistantReplyDto = zod.object({
+  "kind": zod.enum(['message', 'draft', 'created']),
+  "message": zod.string(),
+  "draft": AssistantDraftDto.nullish()
+});
+
+export type AssistantReplyDto = zod.input<typeof AssistantReplyDto>;
+export type AssistantReplyDtoOutput = zod.output<typeof AssistantReplyDto>;
+
+export const AssistantConfirmDto = zod.object({
+  "draftId": zod.uuid()
+});
+
+export type AssistantConfirmDto = zod.input<typeof AssistantConfirmDto>;
+export type AssistantConfirmDtoOutput = zod.output<typeof AssistantConfirmDto>;
 
 export const CategoryResponseDto = zod.object({
   "id": zod.uuid(),
@@ -54,48 +80,6 @@ export const CategoryResponseDto = zod.object({
 
 export type CategoryResponseDto = zod.input<typeof CategoryResponseDto>;
 export type CategoryResponseDtoOutput = zod.output<typeof CategoryResponseDto>;
-
-export const createCategoryDtoNameMax = 64;
-
-export const createCategoryDtoColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-
-
-export const CreateCategoryDto = zod.object({
-  "name": zod.string().min(1).max(createCategoryDtoNameMax),
-  "color": zod.string().regex(createCategoryDtoColorRegExp),
-  "icon": zod.enum(['CLOUD', 'EDUCATION', 'ENTERTAINMENT', 'FINANCE', 'HEALTH', 'OTHER', 'WORK'])
-});
-
-export type CreateCategoryDto = zod.input<typeof CreateCategoryDto>;
-export type CreateCategoryDtoOutput = zod.output<typeof CreateCategoryDto>;
-
-export const PaymentMethodResponseDto = zod.object({
-  "id": zod.uuid(),
-  "name": zod.string(),
-  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
-  "lastFour": zod.string().nullish(),
-  "color": zod.string().nullish(),
-  "createdAt": zod.iso.datetime({"offset":true})
-});
-
-export type PaymentMethodResponseDto = zod.input<typeof PaymentMethodResponseDto>;
-export type PaymentMethodResponseDtoOutput = zod.output<typeof PaymentMethodResponseDto>;
-
-export const createPaymentMethodDtoNameMax = 100;
-
-export const createPaymentMethodDtoLastFourRegExp = new RegExp('^\\d{4}$');
-export const createPaymentMethodDtoColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
-
-
-export const CreatePaymentMethodDto = zod.object({
-  "name": zod.string().min(1).max(createPaymentMethodDtoNameMax),
-  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
-  "lastFour": zod.string().regex(createPaymentMethodDtoLastFourRegExp).optional(),
-  "color": zod.string().regex(createPaymentMethodDtoColorRegExp).optional()
-});
-
-export type CreatePaymentMethodDto = zod.input<typeof CreatePaymentMethodDto>;
-export type CreatePaymentMethodDtoOutput = zod.output<typeof CreatePaymentMethodDto>;
 
 export const SubscriptionPaymentMethodDto = zod.object({
   "id": zod.uuid(),
@@ -176,3 +160,66 @@ export const UpdateSubscriptionDto = zod.object({
 
 export type UpdateSubscriptionDto = zod.input<typeof UpdateSubscriptionDto>;
 export type UpdateSubscriptionDtoOutput = zod.output<typeof UpdateSubscriptionDto>;
+
+export const ExchangeRatesResponseDto = zod.object({
+  "baseCurrency": zod.string(),
+  "rates": zod.record(zod.string(), zod.number()),
+  "effectiveDate": zod.iso.date(),
+  "fetchedAt": zod.iso.datetime({"offset":true}),
+  "stale": zod.boolean(),
+  "source": zod.string()
+});
+
+export type ExchangeRatesResponseDto = zod.input<typeof ExchangeRatesResponseDto>;
+export type ExchangeRatesResponseDtoOutput = zod.output<typeof ExchangeRatesResponseDto>;
+
+export const HealthResponseDto = zod.object({
+  "status": zod.enum(['ok']),
+  "database": zod.enum(['connected']),
+  "timestamp": zod.iso.datetime({"offset":true})
+});
+
+export type HealthResponseDto = zod.input<typeof HealthResponseDto>;
+export type HealthResponseDtoOutput = zod.output<typeof HealthResponseDto>;
+
+export const createCategoryDtoNameMax = 64;
+
+export const createCategoryDtoColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+
+
+export const CreateCategoryDto = zod.object({
+  "name": zod.string().min(1).max(createCategoryDtoNameMax),
+  "color": zod.string().regex(createCategoryDtoColorRegExp),
+  "icon": zod.enum(['CLOUD', 'EDUCATION', 'ENTERTAINMENT', 'FINANCE', 'HEALTH', 'OTHER', 'WORK'])
+});
+
+export type CreateCategoryDto = zod.input<typeof CreateCategoryDto>;
+export type CreateCategoryDtoOutput = zod.output<typeof CreateCategoryDto>;
+
+export const PaymentMethodResponseDto = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
+  "lastFour": zod.string().nullish(),
+  "color": zod.string().nullish(),
+  "createdAt": zod.iso.datetime({"offset":true})
+});
+
+export type PaymentMethodResponseDto = zod.input<typeof PaymentMethodResponseDto>;
+export type PaymentMethodResponseDtoOutput = zod.output<typeof PaymentMethodResponseDto>;
+
+export const createPaymentMethodDtoNameMax = 100;
+
+export const createPaymentMethodDtoLastFourRegExp = new RegExp('^\\d{4}$');
+export const createPaymentMethodDtoColorRegExp = new RegExp('^#[0-9A-Fa-f]{6}$');
+
+
+export const CreatePaymentMethodDto = zod.object({
+  "name": zod.string().min(1).max(createPaymentMethodDtoNameMax),
+  "type": zod.enum(['CARD', 'BANK_ACCOUNT', 'WALLET', 'OTHER']),
+  "lastFour": zod.string().regex(createPaymentMethodDtoLastFourRegExp).optional(),
+  "color": zod.string().regex(createPaymentMethodDtoColorRegExp).optional()
+});
+
+export type CreatePaymentMethodDto = zod.input<typeof CreatePaymentMethodDto>;
+export type CreatePaymentMethodDtoOutput = zod.output<typeof CreatePaymentMethodDto>;

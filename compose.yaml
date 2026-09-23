@@ -48,6 +48,11 @@ services:
       TELEGRAM_AUTH_DEV_BYPASS: ${TELEGRAM_AUTH_DEV_BYPASS:-true}
       TELEGRAM_AUTH_MAX_AGE_SECONDS: ${TELEGRAM_AUTH_MAX_AGE_SECONDS:-600}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.timeweb.ai/v1}
+      ASSISTANT_DISABLE_DAILY_LIMIT: ${ASSISTANT_DISABLE_DAILY_LIMIT:-false}
+      ASSISTANT_BOT_TOKEN: ${ASSISTANT_BOT_TOKEN:-}
       WEB_ORIGIN: http://localhost:5173
     ports:
       - '${API_EXPOSE_PORT:-3002}:3000'
@@ -105,6 +110,8 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-SubsioAppBot}
       TELEGRAM_MINI_APP_URL: ${TELEGRAM_MINI_APP_URL:-}
+      ASSISTANT_API_URL: http://server:3000/api/assistant
+      ASSISTANT_BOT_TOKEN: ${ASSISTANT_BOT_TOKEN:-}
     volumes:
       - .:/workspace
       - bot_node_modules:/workspace/node_modules

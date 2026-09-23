@@ -1,0 +1,609 @@
+.content {
+  display: flex;
+  height: 100dvh;
+  flex-direction: column;
+  color: var(--app-text);
+  border-left: 1px solid var(--app-border-strong);
+  background: radial-gradient(circle at 8% 0, rgba(115, 255, 91, 0.055), transparent 35%), #0e1319;
+}
+
+.header {
+  min-height: 78px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--app-border);
+  background: rgba(14, 19, 25, 0.96);
+}
+
+.header :global(.mantine-Drawer-title) {
+  min-width: 0;
+  flex: 1;
+}
+
+.closeButton,
+.helpButton {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  color: #aeb8af;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.titleRow {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.titleIcon,
+.welcomeIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: #09200c;
+  background: var(--app-signal);
+  box-shadow: 0 8px 22px rgba(115, 255, 91, 0.13);
+}
+
+.titleIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+}
+
+.titleCopy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  overflow: hidden;
+  color: var(--app-text);
+  font-size: 0.94rem;
+  font-weight: 740;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.titleCaption {
+  overflow: hidden;
+  color: var(--app-text-muted);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  min-height: 0;
+  flex: 1;
+  padding: 0;
+}
+
+.layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.messages {
+  min-height: 0;
+  flex: 1;
+}
+
+.messages :global(.mantine-ScrollArea-viewport) {
+  overscroll-behavior: contain;
+}
+
+.conversation {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 18px 28px;
+}
+
+.welcome {
+  margin-block: auto;
+  padding: 24px 21px 19px;
+  border: 1px solid rgba(115, 255, 91, 0.12);
+  border-radius: 23px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(115, 255, 91, 0.075), transparent 44%), #171f23;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.15);
+}
+
+.welcomeIcon {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 23px;
+  border-radius: 17px;
+}
+
+.welcome h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.welcome p {
+  margin: 9px 0 0;
+  color: #aeb8af;
+  font-size: 0.87rem;
+  line-height: 1.55;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.suggestion {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  color: #e3ece2;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+  font-size: 0.81rem;
+  font-weight: 600;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.suggestion svg {
+  color: var(--app-signal);
+}
+
+.welcome .welcomeNote {
+  margin-top: 20px;
+  padding-top: 17px;
+  color: #8e9b90;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+}
+
+.assistantRow,
+.userRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.userRow {
+  justify-content: flex-end;
+}
+
+.assistantAvatar {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  color: var(--app-signal);
+  border: 1px solid rgba(115, 255, 91, 0.17);
+  border-radius: 9px;
+  background: rgba(115, 255, 91, 0.07);
+}
+
+.messageBubble,
+.errorBubble {
+  max-width: min(86%, 350px);
+  padding: 12px 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 4px 16px 16px;
+  background: #1b242c;
+  font-size: 0.89rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.userRow .messageBubble {
+  color: #e9f9ec;
+  border-color: rgba(115, 255, 91, 0.13);
+  border-radius: 16px 4px 16px 16px;
+  background: #214a36;
+}
+
+.errorBubble {
+  color: #ffc6c2;
+  border-color: rgba(255, 136, 127, 0.18);
+  background: #322126;
+}
+
+.limitBubble {
+  display: flex;
+  max-width: min(86%, 350px);
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  color: #f3e7c3;
+  border: 1px solid rgba(241, 194, 91, 0.28);
+  border-radius: 4px 16px 16px;
+  background: #2b2820;
+  line-height: 1.5;
+}
+
+.limitBubble strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.limitBubble span {
+  color: #cabf9f;
+  font-size: 0.8rem;
+}
+
+.typing {
+  display: flex;
+  min-width: 62px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--app-border);
+  border-radius: 4px 16px 16px;
+  background: #1b242c;
+}
+
+.typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #9aaa9b;
+  animation: typingPulse 1.1s ease-in-out infinite;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.draftCard {
+  min-width: 0;
+  margin-left: 37px;
+  padding: 17px;
+  border: 1px solid rgba(115, 255, 91, 0.19);
+  border-radius: 18px;
+  background: radial-gradient(circle at 100% 0, rgba(115, 255, 91, 0.08), transparent 50%), #17211e;
+}
+
+.draftTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.draftEyebrow {
+  color: var(--app-signal);
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.draftStatus {
+  color: #91a495;
+  font-size: 0.71rem;
+  white-space: nowrap;
+}
+
+.draftName {
+  margin: 19px 0 0;
+  font-size: 1.2rem;
+  font-weight: 710;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+
+.draftAmount {
+  margin: 3px 0 0;
+  color: #ddf8df;
+  font-size: 1.5rem;
+  font-weight: 710;
+  letter-spacing: -0.04em;
+}
+
+.draftDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-top: 19px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.detailRow {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.35;
+}
+
+.detailRow > span {
+  color: #a1afa3;
+  font-size: 0.74rem;
+}
+
+.detailRow strong {
+  color: #f0f8ef;
+  font-size: 0.84rem;
+  font-weight: 610;
+  overflow-wrap: anywhere;
+}
+
+.draftActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: 19px;
+}
+
+.confirmButton,
+.cancelButton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.confirmButton {
+  width: 100%;
+  color: #08200b;
+  border: 1px solid var(--app-signal);
+  background: var(--app-signal);
+  white-space: nowrap;
+}
+
+.cancelButton {
+  min-height: 36px;
+  color: #9fad9f;
+  border: 0;
+  background: transparent;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.cancelDraftLink {
+  align-self: flex-start;
+  margin-left: 37px;
+  padding: 3px 0;
+  color: #9fad9f;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.76rem;
+  text-decoration: underline;
+  text-decoration-color: rgba(159, 173, 159, 0.45);
+  text-underline-offset: 3px;
+}
+
+.composerArea {
+  padding: 12px 16px calc(14px + var(--app-safe-bottom));
+  border-top: 1px solid var(--app-border);
+  background: rgba(13, 18, 23, 0.97);
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 5px 5px 5px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: #1b242b;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.composer:focus-within {
+  border-color: rgba(115, 255, 91, 0.48);
+  box-shadow: 0 0 0 3px rgba(115, 255, 91, 0.07);
+}
+
+.composer :global(.mantine-Textarea-root),
+.composer :global(.mantine-Textarea-wrapper) {
+  min-width: 0;
+  flex: 1;
+}
+
+.input,
+.input:focus {
+  min-height: 42px;
+  padding: 10px 0 8px;
+  color: var(--app-text);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.input::placeholder {
+  color: #94a197;
+}
+
+.sendButton {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  place-items: center;
+  color: #08200b;
+  border: 1px solid var(--app-signal);
+  border-radius: 12px;
+  background: var(--app-signal);
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.sendButton:disabled {
+  color: #77877b;
+  border-color: rgba(255, 255, 255, 0.07);
+  background: #303a37;
+  cursor: not-allowed;
+}
+
+.composerHint {
+  display: block;
+  margin: 8px 3px 0;
+  color: #77867b;
+  font-size: 0.68rem;
+}
+
+.closeButton:focus-visible,
+.helpButton:focus-visible,
+.suggestion:focus-visible,
+.confirmButton:focus-visible,
+.cancelButton:focus-visible,
+.cancelDraftLink:focus-visible,
+.sendButton:focus-visible {
+  outline: 2px solid var(--app-signal);
+  outline-offset: 3px;
+}
+
+.suggestion:disabled,
+.confirmButton:disabled,
+.cancelButton:disabled,
+.cancelDraftLink:disabled,
+.helpButton:disabled {
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  .closeButton:hover,
+  .helpButton:hover {
+    color: var(--app-text);
+    border-color: rgba(255, 255, 255, 0.11);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .suggestion:not(:disabled):hover {
+    color: #f3fff1;
+    border-color: rgba(115, 255, 91, 0.32);
+    background: rgba(115, 255, 91, 0.075);
+  }
+
+  .confirmButton:not(:disabled):hover,
+  .sendButton:not(:disabled):hover {
+    border-color: #a0ff8c;
+    background: #a0ff8c;
+  }
+
+  .cancelButton:not(:disabled):hover {
+    color: #edf5ed;
+    background: transparent;
+  }
+
+  .cancelDraftLink:not(:disabled):hover {
+    color: #f0f8ee;
+  }
+}
+
+@keyframes typingPulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.42;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (max-width: 48em) {
+  .content {
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .header {
+    min-height: 76px;
+    padding: calc(12px + var(--app-safe-top)) 12px 12px 15px;
+  }
+
+  .closeButton,
+  .helpButton {
+    width: 44px;
+    height: 44px;
+  }
+
+  .conversation {
+    padding: 20px 14px 24px;
+  }
+
+  .composerArea {
+    padding: 10px 12px calc(11px + var(--app-safe-bottom));
+  }
+
+  .composerHint {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .titleCaption {
+    display: none;
+  }
+
+  .welcome {
+    padding: 19px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing span {
+    animation: none;
+  }
+}

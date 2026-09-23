@@ -11,6 +11,8 @@ describe('validateEnvironment', () => {
     expect(environment).toEqual({
       API_HOST: '0.0.0.0',
       API_PORT: 3000,
+      AI_BASE_URL: 'https://api.timeweb.ai/v1',
+      ASSISTANT_DISABLE_DAILY_LIMIT: false,
       DATABASE_URL: 'postgresql://user:password@localhost:5432/database',
       SESSION_COOKIE_SECURE: false,
       SESSION_TTL_DAYS: 30,
@@ -46,5 +48,14 @@ describe('validateEnvironment', () => {
         WEB_ORIGIN: 'not-a-url',
       }),
     ).toThrow();
+  });
+
+  it('can explicitly disable the assistant limit for testing', () => {
+    expect(
+      validateEnvironment({
+        DATABASE_URL: 'postgresql://user:password@localhost:5432/database',
+        ASSISTANT_DISABLE_DAILY_LIMIT: 'true',
+      }).ASSISTANT_DISABLE_DAILY_LIMIT,
+    ).toBe(true);
   });
 });

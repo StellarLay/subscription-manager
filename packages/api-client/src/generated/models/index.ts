@@ -6,6 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './assistantConfirmDto';
+export * from './assistantDraftDto';
+export * from './assistantMessageDto';
+export * from './assistantReplyDto';
+export * from './assistantReplyDtoKind';
+export * from './assistantStatusDto';
 export * from './authUserResponseDto';
 export * from './categoryResponseDto';
 export * from './categoryResponseDtoIcon';

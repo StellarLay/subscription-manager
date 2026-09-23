@@ -2,6 +2,7 @@ export interface ApiErrorBody {
   message?: string | string[];
   error?: string;
   statusCode?: number;
+  resetAt?: string;
 }
 
 export class ApiError extends Error {

@@ -43,6 +43,11 @@ services:
       TELEGRAM_AUTH_DEV_BYPASS: 'false'
       TELEGRAM_AUTH_MAX_AGE_SECONDS: ${TELEGRAM_AUTH_MAX_AGE_SECONDS:-600}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.timeweb.ai/v1}
+      ASSISTANT_DISABLE_DAILY_LIMIT: ${ASSISTANT_DISABLE_DAILY_LIMIT:-false}
+      ASSISTANT_BOT_TOKEN: ${ASSISTANT_BOT_TOKEN:-}
     ports:
       - '127.0.0.1:3000:3000'
     depends_on:
@@ -68,6 +73,8 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-SubsioAppBot}
       TELEGRAM_MINI_APP_URL: https://${APP_HOST}
+      ASSISTANT_API_URL: http://127.0.0.1:3000/api/assistant
+      ASSISTANT_BOT_TOKEN: ${ASSISTANT_BOT_TOKEN:-}
     depends_on:
       server:
         condition: service_healthy

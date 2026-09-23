@@ -26,6 +26,10 @@ export class SubscriptionsService {
 
   async findAll(): Promise<SubscriptionResponseDto[]> {
     const userId = await this.currentUser.getId();
+    return this.findAllForUser(userId);
+  }
+
+  async findAllForUser(userId: string): Promise<SubscriptionResponseDto[]> {
     const [user, subscriptions] = await Promise.all([
       this.prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
       this.prisma.recurringPayment.findMany({
@@ -64,6 +68,24 @@ export class SubscriptionsService {
 
   async create(input: CreateSubscriptionDto): Promise<SubscriptionResponseDto> {
     const userId = await this.currentUser.getId();
+    return this.createForUser(userId, input);
+  }
+
+  async createForUser(
+    userId: string,
+    input: CreateSubscriptionDto,
+    assistantDraftId?: string,
+  ): Promise<SubscriptionResponseDto> {
+    if (assistantDraftId) {
+      const existing = await this.prisma.recurringPayment.findUnique({
+        where: { assistantDraftId },
+        include: { category: true, paymentMethod: true },
+      });
+      if (existing) {
+        if (existing.userId !== userId) throw new NotFoundException('Subscription not found');
+        return this.toResponse(existing);
+      }
+    }
 
     await this.ensurePaymentMethodOwned(input.paymentMethodId, userId);
     await this.ensureCategoryOwned(input.categoryId, userId);
@@ -71,6 +93,7 @@ export class SubscriptionsService {
     const subscription = await this.prisma.recurringPayment.create({
       data: {
         userId,
+        assistantDraftId,
         name: input.name.trim(),
         amount: input.amount.toFixed(2),
         currency: input.currency,

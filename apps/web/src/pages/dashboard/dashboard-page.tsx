@@ -7,6 +7,7 @@ import {
   useGetExchangeRates,
   useGetPaymentMethods,
   useGetSubscriptions,
+  useGetAssistantStatus,
 } from '@subscription-manager/api-client';
 import {
   ActionIcon,
@@ -42,6 +43,7 @@ import {
   IconRefresh,
   IconRestore,
   IconSearch,
+  IconSparkles,
   IconTag,
   IconTrash,
   IconWallet,
@@ -60,6 +62,7 @@ import {
 } from '@/features/subscriptions/subscription-schedule';
 import { CategoryIcon } from '@/features/categories/category-icon';
 import { UpcomingPaymentsPanel } from '@/widgets/upcoming-payments/upcoming-payments-panel';
+import { AssistantDrawer } from '@/features/assistant/assistant-drawer';
 import { getDaysUntilCharge } from '@/widgets/upcoming-payments/upcoming-payments';
 
 import classes from './dashboard-page.module.css';
@@ -122,6 +125,7 @@ export function DashboardPage() {
   const [sortMode, setSortMode] = useState<SubscriptionSort>('date-asc');
   const [filtersOpened, setFiltersOpened] = useState(false);
   const [createOpened, createModal] = useDisclosure(false);
+  const [assistantOpened, assistantDrawer] = useDisclosure(false);
   const [editOpened, editModal] = useDisclosure(false);
   const [archiveOpened, archiveModal] = useDisclosure(false);
   const [deleteOpened, deleteModal] = useDisclosure(false);
@@ -143,6 +147,9 @@ export function DashboardPage() {
   });
   const { data: categories = [], isLoading: categoriesLoading } = useGetCategories();
   const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useGetPaymentMethods();
+  const { data: assistantStatus } = useGetAssistantStatus({
+    swr: { revalidateOnFocus: false },
+  });
   const {
     data: subscriptions = [],
     error: subscriptionsError,
@@ -339,15 +346,28 @@ export function DashboardPage() {
                     Всё, что списывается регулярно — в одном месте.
                   </Text>
                 </Box>
-                <Button
-                  className={classes.addButton}
-                  leftSection={<IconPlus size={18} stroke={2.4} />}
-                  onClick={openCreateModal}
-                  radius="xl"
-                  size="md"
-                >
-                  Добавить подписку
-                </Button>
+                <Group gap="sm">
+                  {assistantStatus?.available && (
+                    <Button
+                      leftSection={<IconSparkles size={18} />}
+                      onClick={assistantDrawer.open}
+                      radius="xl"
+                      size="md"
+                      variant="default"
+                    >
+                      Помощник
+                    </Button>
+                  )}
+                  <Button
+                    className={classes.addButton}
+                    leftSection={<IconPlus size={18} stroke={2.4} />}
+                    onClick={openCreateModal}
+                    radius="xl"
+                    size="md"
+                  >
+                    Добавить подписку
+                  </Button>
+                </Group>
               </Group>
 
               <Box className={classes.metrics}>
@@ -790,6 +810,11 @@ export function DashboardPage() {
         onSaved={() => void handleSubscriptionCreated()}
         opened={createOpened || editOpened}
         subscription={editingSubscription}
+      />
+      <AssistantDrawer
+        onClose={assistantDrawer.close}
+        onCreated={() => void refreshSubscriptions()}
+        opened={assistantOpened}
       />
       <ArchiveSubscriptionModal
         onArchived={(subscription) => void handleSubscriptionArchived(subscription)}

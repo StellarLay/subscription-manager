@@ -14,6 +14,11 @@ const envSchema = z.object({
   TELEGRAM_AUTH_MAX_AGE_SECONDS: z.coerce.number().int().positive().max(86400).default(600),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   WEB_ORIGIN: z.string().url().default('http://localhost:5173'),
+  AI_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().optional(),
+  AI_BASE_URL: z.string().url().default('https://api.timeweb.ai/v1'),
+  ASSISTANT_DISABLE_DAILY_LIMIT: environmentBoolean.default(false),
+  ASSISTANT_BOT_TOKEN: z.union([z.string().min(32), z.literal('')]).optional(),
 });
 
 export type Environment = z.infer<typeof envSchema>;

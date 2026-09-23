@@ -70,9 +70,9 @@
         ]
       }
     },
-    "/api/exchange-rates": {
+    "/api/assistant/status": {
       "get": {
-        "operationId": "getExchangeRates",
+        "operationId": "getAssistantStatus",
         "parameters": [],
         "responses": {
           "200": {
@@ -80,147 +80,153 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExchangeRatesResponseDto"
+                  "$ref": "#/components/schemas/AssistantStatusDto"
                 }
               }
             }
           }
         },
-        "summary": "Get RUB exchange rates from the Bank of Russia",
+        "summary": "",
         "tags": [
-          "Exchange rates"
+          "Assistant"
         ]
       }
     },
-    "/api/health": {
-      "get": {
-        "operationId": "getHealth",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Check API and database availability",
-        "tags": [
-          "Health"
-        ]
-      }
-    },
-    "/api/categories": {
-      "get": {
-        "operationId": "getCategories",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CategoryResponseDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get current user categories",
-        "tags": [
-          "Categories"
-        ]
-      },
+    "/api/assistant/message": {
       "post": {
-        "operationId": "createCategory",
+        "operationId": "sendAssistantMessage",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCategoryDto"
+                "$ref": "#/components/schemas/AssistantMessageDto"
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoryResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Create a category",
-        "tags": [
-          "Categories"
-        ]
-      }
-    },
-    "/api/payment-methods": {
-      "get": {
-        "operationId": "getPaymentMethods",
-        "parameters": [],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PaymentMethodResponseDto"
-                  }
+                  "$ref": "#/components/schemas/AssistantReplyDto"
                 }
               }
             }
           }
         },
-        "summary": "Get current user payment methods",
+        "summary": "",
         "tags": [
-          "Payment methods"
+          "Assistant"
         ]
-      },
+      }
+    },
+    "/api/assistant/confirm": {
       "post": {
-        "operationId": "createPaymentMethod",
+        "operationId": "confirmAssistantDraft",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePaymentMethodDto"
+                "$ref": "#/components/schemas/AssistantConfirmDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaymentMethodResponseDto"
+                  "$ref": "#/components/schemas/AssistantReplyDto"
                 }
               }
             }
           }
         },
-        "summary": "Create a payment method",
+        "summary": "",
         "tags": [
-          "Payment methods"
+          "Assistant"
+        ]
+      }
+    },
+    "/api/assistant/cancel": {
+      "post": {
+        "operationId": "cancelAssistantDraft",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantConfirmDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReplyDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/assistant/telegram/message": {
+      "post": {
+        "operationId": "AssistantController_telegramMessage",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/assistant/telegram/confirm": {
+      "post": {
+        "operationId": "AssistantController_telegramConfirm",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/assistant/telegram/cancel": {
+      "post": {
+        "operationId": "AssistantController_telegramCancel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Assistant"
         ]
       }
     },
@@ -439,6 +445,160 @@
           "Subscriptions"
         ]
       }
+    },
+    "/api/exchange-rates": {
+      "get": {
+        "operationId": "getExchangeRates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeRatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get RUB exchange rates from the Bank of Russia",
+        "tags": [
+          "Exchange rates"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Check API and database availability",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "operationId": "getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get current user categories",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "post": {
+        "operationId": "createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a category",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/api/payment-methods": {
+      "get": {
+        "operationId": "getPaymentMethods",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentMethodResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get current user payment methods",
+        "tags": [
+          "Payment methods"
+        ]
+      },
+      "post": {
+        "operationId": "createPaymentMethod",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a payment method",
+        "tags": [
+          "Payment methods"
+        ]
+      }
     }
   },
   "info": {
@@ -490,79 +650,105 @@
           "id"
         ]
       },
-      "ExchangeRatesResponseDto": {
+      "AssistantStatusDto": {
         "type": "object",
         "properties": {
-          "baseCurrency": {
-            "type": "string",
-            "example": "RUB"
-          },
-          "rates": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "number"
-            },
-            "example": {
-              "EUR": 99.3304,
-              "RUB": 1,
-              "USD": 84.5093
-            }
-          },
-          "effectiveDate": {
-            "type": "string",
-            "example": "2026-09-18",
-            "format": "date"
-          },
-          "fetchedAt": {
-            "type": "string",
-            "example": "2026-09-18T09:00:00.000Z",
-            "format": "date-time"
-          },
-          "stale": {
-            "type": "boolean",
-            "example": false
-          },
-          "source": {
-            "type": "string",
-            "example": "CBR"
+          "available": {
+            "type": "boolean"
           }
         },
         "required": [
-          "baseCurrency",
-          "rates",
-          "effectiveDate",
-          "fetchedAt",
-          "stale",
-          "source"
+          "available"
         ]
       },
-      "HealthResponseDto": {
+      "AssistantMessageDto": {
         "type": "object",
         "properties": {
-          "status": {
+          "message": {
             "type": "string",
-            "enum": [
-              "ok"
-            ],
-            "example": "ok"
-          },
-          "database": {
-            "type": "string",
-            "enum": [
-              "connected"
-            ],
-            "example": "connected"
-          },
-          "timestamp": {
-            "type": "string",
-            "example": "2026-09-06T12:00:00.000Z",
-            "format": "date-time"
+            "maxLength": 1000,
+            "minLength": 1
           }
         },
         "required": [
-          "status",
-          "database",
-          "timestamp"
+          "message"
+        ]
+      },
+      "AssistantDraftDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingPeriod": {
+            "type": "string",
+            "nullable": true
+          },
+          "nextChargeDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "paymentMethodLabel": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "AssistantReplyDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "message",
+              "draft",
+              "created"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "draft": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssistantDraftDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "message"
+        ]
+      },
+      "AssistantConfirmDto": {
+        "type": "object",
+        "properties": {
+          "draftId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "draftId"
         ]
       },
       "CategoryResponseDto": {
@@ -604,118 +790,6 @@
           "color",
           "icon",
           "createdAt"
-        ]
-      },
-      "CreateCategoryDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Развлечения",
-            "maxLength": 64,
-            "minLength": 1
-          },
-          "color": {
-            "type": "string",
-            "example": "#ff9b66",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
-          },
-          "icon": {
-            "type": "string",
-            "enum": [
-              "CLOUD",
-              "EDUCATION",
-              "ENTERTAINMENT",
-              "FINANCE",
-              "HEALTH",
-              "OTHER",
-              "WORK"
-            ],
-            "example": "ENTERTAINMENT"
-          }
-        },
-        "required": [
-          "name",
-          "color",
-          "icon"
-        ]
-      },
-      "PaymentMethodResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "example": "Тинькофф Black"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "CARD",
-              "BANK_ACCOUNT",
-              "WALLET",
-              "OTHER"
-            ]
-          },
-          "lastFour": {
-            "type": "string",
-            "example": "4242",
-            "nullable": true
-          },
-          "color": {
-            "type": "string",
-            "example": "#73ff5b",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2026-09-17T12:00:00.000Z",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "type",
-          "createdAt"
-        ]
-      },
-      "CreatePaymentMethodDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Тинькофф Black",
-            "maxLength": 100,
-            "minLength": 1
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "CARD",
-              "BANK_ACCOUNT",
-              "WALLET",
-              "OTHER"
-            ],
-            "example": "CARD"
-          },
-          "lastFour": {
-            "type": "string",
-            "example": "4242",
-            "pattern": "^\\d{4}$"
-          },
-          "color": {
-            "type": "string",
-            "example": "#73ff5b",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
-          }
-        },
-        "required": [
-          "name",
-          "type"
         ]
       },
       "SubscriptionPaymentMethodDto": {
@@ -970,6 +1044,193 @@
             "nullable": true
           }
         }
+      },
+      "ExchangeRatesResponseDto": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string",
+            "example": "RUB"
+          },
+          "rates": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "example": {
+              "EUR": 99.3304,
+              "RUB": 1,
+              "USD": 84.5093
+            }
+          },
+          "effectiveDate": {
+            "type": "string",
+            "example": "2026-09-18",
+            "format": "date"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "example": "2026-09-18T09:00:00.000Z",
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean",
+            "example": false
+          },
+          "source": {
+            "type": "string",
+            "example": "CBR"
+          }
+        },
+        "required": [
+          "baseCurrency",
+          "rates",
+          "effectiveDate",
+          "fetchedAt",
+          "stale",
+          "source"
+        ]
+      },
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ],
+            "example": "ok"
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "connected"
+            ],
+            "example": "connected"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2026-09-06T12:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "timestamp"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Развлечения",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "color": {
+            "type": "string",
+            "example": "#ff9b66",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "CLOUD",
+              "EDUCATION",
+              "ENTERTAINMENT",
+              "FINANCE",
+              "HEALTH",
+              "OTHER",
+              "WORK"
+            ],
+            "example": "ENTERTAINMENT"
+          }
+        },
+        "required": [
+          "name",
+          "color",
+          "icon"
+        ]
+      },
+      "PaymentMethodResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Тинькофф Black"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "BANK_ACCOUNT",
+              "WALLET",
+              "OTHER"
+            ]
+          },
+          "lastFour": {
+            "type": "string",
+            "example": "4242",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "example": "#73ff5b",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-17T12:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "createdAt"
+        ]
+      },
+      "CreatePaymentMethodDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Тинькофф Black",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "BANK_ACCOUNT",
+              "WALLET",
+              "OTHER"
+            ],
+            "example": "CARD"
+          },
+          "lastFour": {
+            "type": "string",
+            "example": "4242",
+            "pattern": "^\\d{4}$"
+          },
+          "color": {
+            "type": "string",
+            "example": "#73ff5b",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
       }
     }
   }

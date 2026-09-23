@@ -1,6 +1,10 @@
 {$APP_HOST} {
   encode zstd gzip
 
+  handle /api/assistant/telegram/* {
+    respond 404
+  }
+
   handle /api/* {
     reverse_proxy 127.0.0.1:3000
   }

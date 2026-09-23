@@ -1,5 +1,6 @@
 import { Bot, InlineKeyboard } from 'grammy';
 
+import { AssistantApi, type AssistantReply } from './assistant-api.js';
 import type { BotEnvironment } from './config.js';
 import {
   BOT_COMMANDS,
@@ -13,6 +14,21 @@ import { formatReminderTime } from './reminder-time.js';
 import type { BotUserSettings, BotUsers } from './users.js';
 
 const OPEN_APP_LABEL = 'Открыть Subsio';
+
+function assistantKeyboard(reply: AssistantReply): InlineKeyboard | undefined {
+  if (!reply.draft) return undefined;
+  const keyboard = new InlineKeyboard();
+  if (
+    reply.draft.name &&
+    reply.draft.amount &&
+    reply.draft.currency &&
+    reply.draft.billingPeriod &&
+    reply.draft.nextChargeDate
+  ) {
+    keyboard.text('Создать подписку', `assistant:confirm:${reply.draft.id}`).row();
+  }
+  return keyboard.text('Отмена', `assistant:cancel:${reply.draft.id}`);
+}
 
 function createAppKeyboard(miniAppUrl: string): InlineKeyboard {
   return new InlineKeyboard()
@@ -73,6 +89,7 @@ function createMinuteUnitsKeyboard(hour: number, tens: number): InlineKeyboard {
 
 export function createSubsioBot(token: string, environment: BotEnvironment, users: BotUsers): Bot {
   const bot = new Bot(token);
+  const assistant = new AssistantApi(environment);
 
   bot.command('start', async (context) => {
     if (context.chat.type !== 'private' || !context.from) return;
@@ -82,7 +99,11 @@ export function createSubsioBot(token: string, environment: BotEnvironment, user
     const replyMarkup = environment.TELEGRAM_MINI_APP_URL
       ? createAppKeyboard(environment.TELEGRAM_MINI_APP_URL)
       : new InlineKeyboard().text('Настройки напоминаний', 'settings:show');
-    const suffix = replyMarkup ? '' : `\n\n${MINI_APP_PENDING_MESSAGE}`;
+    const suffix = assistant.available
+      ? '\n\nМожешь написать сюда о новой подписке своими словами — помогу её добавить.'
+      : replyMarkup
+        ? ''
+        : `\n\n${MINI_APP_PENDING_MESSAGE}`;
 
     await context.reply(`${START_MESSAGE}${suffix}`, {
       parse_mode: 'HTML',
@@ -96,10 +117,15 @@ export function createSubsioBot(token: string, environment: BotEnvironment, user
       ? createAppKeyboard(environment.TELEGRAM_MINI_APP_URL)
       : undefined;
 
-    await context.reply(HELP_MESSAGE, {
-      parse_mode: 'HTML',
-      reply_markup: replyMarkup,
-    });
+    await context.reply(
+      assistant.available
+        ? `${HELP_MESSAGE}\n\nНапиши «Покажи мои подписки» или «Добавь Netflix за 799 ₽ в месяц, списание 15-го». Перед добавлением попрошу подтверждение.`
+        : HELP_MESSAGE,
+      {
+        parse_mode: 'HTML',
+        reply_markup: replyMarkup,
+      },
+    );
   });
 
   bot.command('settings', async (context) => {
@@ -232,11 +258,37 @@ export function createSubsioBot(token: string, environment: BotEnvironment, user
 
   bot.on('message:text', async (context) => {
     if (context.chat.type !== 'private') return;
+    if (assistant.available && context.from) {
+      try {
+        const reply = await assistant.message(context.from.id, context.message.text);
+        await context.reply(reply.message, { reply_markup: assistantKeyboard(reply) });
+      } catch (error) {
+        await context.reply(
+          error instanceof Error ? error.message : 'Помощник сейчас не отвечает.',
+        );
+      }
+      return;
+    }
     await context.reply('Открой Subsio через кнопку или отправь /help.', {
       reply_markup: environment.TELEGRAM_MINI_APP_URL
         ? createAppKeyboard(environment.TELEGRAM_MINI_APP_URL)
         : undefined,
     });
+  });
+
+  bot.callbackQuery(/^assistant:(confirm|cancel):([0-9a-f-]{36})$/, async (context) => {
+    await context.answerCallbackQuery();
+    if (context.chat?.type !== 'private' || !assistant.available) return;
+    try {
+      const [, action, draftId] = context.match;
+      const reply =
+        action === 'confirm'
+          ? await assistant.confirm(context.from.id, draftId!)
+          : await assistant.cancel(context.from.id, draftId!);
+      await context.editMessageText(reply.message);
+    } catch (error) {
+      await context.reply(error instanceof Error ? error.message : 'Помощник сейчас не отвечает.');
+    }
   });
 
   bot.catch(({ ctx, error }) => {
