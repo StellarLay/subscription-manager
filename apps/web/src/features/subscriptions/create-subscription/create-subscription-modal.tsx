@@ -35,6 +35,7 @@ import { useEffect } from 'react';
 import { Controller, type DefaultValues, useForm, useWatch } from 'react-hook-form';
 
 import { CreatePaymentMethodModal } from '@/features/payment-methods/create-payment-method/create-payment-method-modal';
+import { useTelegramBackButton } from '@/app/telegram/use-telegram-back-button';
 import { CreateCategoryModal } from '@/features/categories/create-category/create-category-modal';
 
 import classes from './create-subscription-modal.module.css';
@@ -153,6 +154,8 @@ export function CreateSubscriptionModal({
     reset(getDefaultValues(subscription));
     onClose();
   };
+
+  useTelegramBackButton(opened, close);
 
   const submit = handleSubmit(async (values) => {
     try {

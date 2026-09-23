@@ -214,6 +214,78 @@ describe('AssistantService', () => {
     expect(extract).not.toHaveBeenCalled();
   });
 
+  it('keeps the full name, infers /мес, and advances a purchase date to the next charge', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-23T09:00:00.000Z'));
+    try {
+      let savedPayload: Record<string, unknown> | null = null;
+      const prisma = {
+        $queryRaw: vi.fn().mockResolvedValue([{ count: 1 }]),
+        assistantDraft: {
+          findUnique: vi
+            .fn()
+            .mockImplementation(() =>
+              Promise.resolve(
+                savedPayload
+                  ? { id: draftId, payload: savedPayload, expiresAt: new Date('2026-09-24') }
+                  : null,
+              ),
+            ),
+          upsert: vi
+            .fn()
+            .mockImplementation(
+              ({
+                create,
+                update,
+              }: {
+                create?: { payload: Record<string, unknown> };
+                update: { payload: Record<string, unknown> };
+              }) => {
+                savedPayload = create?.payload ?? update.payload;
+                return Promise.resolve({ id: draftId });
+              },
+            ),
+        },
+        paymentMethod: { findMany: vi.fn().mockResolvedValue([]) },
+        user: { findUnique: vi.fn().mockResolvedValue({ timezone: 'Europe/Moscow' }) },
+      };
+      const extract = vi.fn().mockResolvedValue({
+        intent: 'create',
+        name: 'бусти',
+        amount: 199,
+        currency: null,
+        billingPeriod: null,
+        nextChargeDate: null,
+      });
+      const service = new AssistantService(
+        prisma as unknown as PrismaService,
+        {} as SubscriptionsService,
+        { available: true, extract } as unknown as AiModelClient,
+        enabledLimit,
+      );
+
+      const first = await service.message(userId, 'бусти рубильник 199р/мес, купил 20.09.26');
+      expect(first.draft).toMatchObject({
+        name: 'бусти рубильник',
+        amount: 199,
+        currency: 'RUB',
+        billingPeriod: 'MONTH',
+        nextChargeDate: '2026-10-20',
+      });
+      const corrected = await service.message(userId, 'Название: Бусти Рубильник Pro');
+      expect(corrected.draft).toMatchObject({
+        name: 'Бусти Рубильник Pro',
+        amount: 199,
+        currency: 'RUB',
+        billingPeriod: 'MONTH',
+        nextChargeDate: '2026-10-20',
+      });
+      expect(extract).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it.each([
     ['Europe/Moscow', '2026-09-22T20:30:00.000Z', '2026-09-22', '2026-09-22T21:00:00.000Z'],
     ['Europe/Moscow', '2026-09-22T21:30:00.000Z', '2026-09-23', '2026-09-23T21:00:00.000Z'],

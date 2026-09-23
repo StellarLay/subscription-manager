@@ -1,8 +1,9 @@
 .screen {
   min-height: 100dvh;
-  padding: 24px;
+  padding: calc(24px + var(--app-safe-top)) calc(24px + var(--app-safe-right))
+    calc(24px + var(--app-safe-bottom)) calc(24px + var(--app-safe-left));
   background:
-    radial-gradient(circle at 50% 28%, rgba(115, 255, 91, 0.09), transparent 32%), #07090d;
+    radial-gradient(circle at 50% 28%, rgba(115, 255, 91, 0.09), transparent 32%), var(--app-bg);
 }
 
 .card {
@@ -10,7 +11,7 @@
   padding: 30px;
   border: 1px solid var(--app-border);
   border-radius: 26px;
-  background: rgba(13, 16, 22, 0.94);
+  background: var(--app-surface);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
 }
 

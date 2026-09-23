@@ -1,6 +1,6 @@
 .content {
   display: flex;
-  height: 100dvh;
+  height: var(--app-viewport-height, 100dvh);
   flex-direction: column;
   color: var(--app-text);
   border-left: 1px solid var(--app-border-strong);
@@ -364,6 +364,50 @@
   overflow-wrap: anywhere;
 }
 
+.editSuggestions,
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.editSuggestions {
+  margin-top: 18px;
+}
+
+.quickActions {
+  margin-bottom: 10px;
+}
+
+.editSuggestions button,
+.quickActions button {
+  min-height: 32px;
+  padding: 5px 10px;
+  color: var(--app-text-muted);
+  border: 1px solid var(--app-border-strong);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 600;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.editSuggestions button:disabled,
+.quickActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.editSuggestions button:focus-visible,
+.quickActions button:focus-visible {
+  outline: 2px solid var(--app-signal);
+  outline-offset: 2px;
+}
+
 .draftActions {
   display: flex;
   flex-direction: column;
@@ -531,6 +575,13 @@
     background: rgba(115, 255, 91, 0.075);
   }
 
+  .editSuggestions button:not(:disabled):hover,
+  .quickActions button:not(:disabled):hover {
+    color: var(--app-text);
+    border-color: var(--app-signal);
+    background: rgba(115, 255, 91, 0.09);
+  }
+
   .confirmButton:not(:disabled):hover,
   .sendButton:not(:disabled):hover {
     border-color: #a0ff8c;
@@ -605,5 +656,115 @@
 @media (prefers-reduced-motion: reduce) {
   .typing span {
     animation: none;
+  }
+}
+
+:global(html[data-app-theme='light']) .content {
+  background: radial-gradient(circle at 8% 0, rgba(106, 210, 88, 0.09), transparent 35%), #fff;
+}
+
+:global(html[data-app-theme='light']) .header,
+:global(html[data-app-theme='light']) .composerArea {
+  background: rgba(255, 255, 255, 0.97);
+}
+
+:global(html[data-app-theme='light']) .closeButton,
+:global(html[data-app-theme='light']) .helpButton {
+  color: #536957;
+}
+
+:global(html[data-app-theme='light']) .welcome {
+  border-color: rgba(35, 117, 40, 0.16);
+  background: radial-gradient(circle at 100% 0, rgba(106, 210, 88, 0.1), transparent 44%), #f8fbf6;
+  box-shadow: 0 16px 45px rgba(24, 48, 28, 0.07);
+}
+
+:global(html[data-app-theme='light']) .welcome p,
+:global(html[data-app-theme='light']) .welcome .welcomeNote {
+  color: #5b6e5f;
+}
+
+:global(html[data-app-theme='light']) .welcome .welcomeNote {
+  border-color: var(--app-border);
+}
+
+:global(html[data-app-theme='light']) .suggestion {
+  color: #304a36;
+  border-color: var(--app-border);
+  background: #fff;
+}
+
+:global(html[data-app-theme='light']) .suggestion svg,
+:global(html[data-app-theme='light']) .assistantAvatar,
+:global(html[data-app-theme='light']) .draftEyebrow {
+  color: var(--app-accent-text);
+}
+
+:global(html[data-app-theme='light']) .messageBubble,
+:global(html[data-app-theme='light']) .typing {
+  background: #f1f5ef;
+}
+
+:global(html[data-app-theme='light']) .userRow .messageBubble {
+  color: #12391a;
+  border-color: rgba(35, 117, 40, 0.15);
+  background: #d8f4d4;
+}
+
+:global(html[data-app-theme='light']) .errorBubble {
+  color: #8b2928;
+  border-color: rgba(161, 62, 58, 0.2);
+  background: #fff0ee;
+}
+
+:global(html[data-app-theme='light']) .limitBubble {
+  color: #67521b;
+  background: #fff8e4;
+}
+
+:global(html[data-app-theme='light']) .limitBubble span {
+  color: #786a46;
+}
+
+:global(html[data-app-theme='light']) .draftCard {
+  border-color: rgba(35, 117, 40, 0.2);
+  background: radial-gradient(circle at 100% 0, rgba(106, 210, 88, 0.11), transparent 50%), #f5fbf2;
+}
+
+:global(html[data-app-theme='light']) .draftStatus,
+:global(html[data-app-theme='light']) .detailRow > span,
+:global(html[data-app-theme='light']) .cancelButton,
+:global(html[data-app-theme='light']) .cancelDraftLink,
+:global(html[data-app-theme='light']) .composerHint {
+  color: #5d7061;
+}
+
+:global(html[data-app-theme='light']) .draftAmount,
+:global(html[data-app-theme='light']) .detailRow strong {
+  color: #1d3d25;
+}
+
+:global(html[data-app-theme='light']) .draftDetails {
+  border-color: var(--app-border);
+}
+
+:global(html[data-app-theme='light']) .composer {
+  border-color: var(--app-border-strong);
+  background: #f8faf7;
+}
+
+:global(html[data-app-theme='light']) .input::placeholder {
+  color: #637766;
+}
+
+@media (hover: hover) {
+  :global(html[data-app-theme='light']) .suggestion:not(:disabled):hover {
+    color: #1d5926;
+    background: #eff9ec;
+  }
+
+  :global(html[data-app-theme='light']) .cancelButton:not(:disabled):hover,
+  :global(html[data-app-theme='light']) .cancelDraftLink:not(:disabled):hover {
+    color: #1b3d23;
   }
 }

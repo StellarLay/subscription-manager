@@ -43,7 +43,9 @@ import {
   IconRefresh,
   IconRestore,
   IconSearch,
+  IconMoon,
   IconSparkles,
+  IconSun,
   IconTag,
   IconTrash,
   IconWallet,
@@ -52,6 +54,7 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 
 import { useSubscriptionWebMcp } from '@/features/subscriptions/use-subscription-webmcp';
+import { useAppTheme } from '@/app/providers/app-theme-context';
 // Keep the modals eager: Vite 8 currently splits their shared dependencies into cyclic chunks.
 import { ArchiveSubscriptionModal } from '@/features/subscriptions/archive-subscription/archive-subscription-modal';
 import { CreateSubscriptionModal } from '@/features/subscriptions/create-subscription/create-subscription-modal';
@@ -61,7 +64,6 @@ import {
   formatSubscriptionPeriod,
 } from '@/features/subscriptions/subscription-schedule';
 import { CategoryIcon } from '@/features/categories/category-icon';
-import { UpcomingPaymentsPanel } from '@/widgets/upcoming-payments/upcoming-payments-panel';
 import { AssistantDrawer } from '@/features/assistant/assistant-drawer';
 import { getDaysUntilCharge } from '@/widgets/upcoming-payments/upcoming-payments';
 
@@ -75,6 +77,19 @@ const sortOptions = [
   { label: 'Название: Я — А', value: 'name-desc' },
   { label: 'Недавно добавленные', value: 'created-desc' },
 ];
+
+const subscriptionPluralRules = new Intl.PluralRules('ru-RU');
+
+function getSubscriptionCountLabel(count: number): string {
+  switch (subscriptionPluralRules.select(count)) {
+    case 'one':
+      return 'подписка';
+    case 'few':
+      return 'подписки';
+    default:
+      return 'подписок';
+  }
+}
 
 function formatMoney(amount: number | string, currency: string): string {
   return new Intl.NumberFormat('ru-RU', {
@@ -115,6 +130,7 @@ function getCategoryTextColor(color: string): string {
 }
 
 export function DashboardPage() {
+  const { colorScheme, toggleTheme } = useAppTheme();
   const isMobile = useMediaQuery('(max-width: 48em)', undefined, {
     getInitialValueInEffect: false,
   });
@@ -326,6 +342,38 @@ export function DashboardPage() {
                   <Text className={classes.brandCaption}>регулярные платежи</Text>
                 </Box>
               </Group>
+              <Group className={classes.headerActions} gap={8} wrap="nowrap">
+                <ActionIcon
+                  aria-label={
+                    colorScheme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'
+                  }
+                  className={classes.themeTrigger}
+                  onClick={toggleTheme}
+                  radius="md"
+                  size={44}
+                  title={colorScheme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+                  variant="subtle"
+                >
+                  {colorScheme === 'dark' ? (
+                    <IconSun size={21} stroke={1.8} />
+                  ) : (
+                    <IconMoon size={21} stroke={1.8} />
+                  )}
+                </ActionIcon>
+                {assistantStatus?.available && (
+                  <ActionIcon
+                    aria-label="Открыть помощника"
+                    className={classes.assistantTrigger}
+                    onClick={assistantDrawer.open}
+                    radius="md"
+                    size={44}
+                    title="Помощник Subsio"
+                    variant="default"
+                  >
+                    <IconSparkles size={21} stroke={1.8} />
+                  </ActionIcon>
+                )}
+              </Group>
             </Group>
           </Container>
         </AppShell.Header>
@@ -346,28 +394,15 @@ export function DashboardPage() {
                     Всё, что списывается регулярно — в одном месте.
                   </Text>
                 </Box>
-                <Group gap="sm">
-                  {assistantStatus?.available && (
-                    <Button
-                      leftSection={<IconSparkles size={18} />}
-                      onClick={assistantDrawer.open}
-                      radius="xl"
-                      size="md"
-                      variant="default"
-                    >
-                      Помощник
-                    </Button>
-                  )}
-                  <Button
-                    className={classes.addButton}
-                    leftSection={<IconPlus size={18} stroke={2.4} />}
-                    onClick={openCreateModal}
-                    radius="xl"
-                    size="md"
-                  >
-                    Добавить подписку
-                  </Button>
-                </Group>
+                <Button
+                  className={classes.addButton}
+                  leftSection={<IconPlus size={18} stroke={2.4} />}
+                  onClick={openCreateModal}
+                  radius="xl"
+                  size="md"
+                >
+                  Добавить подписку
+                </Button>
               </Group>
 
               <Box className={classes.metrics}>
@@ -397,41 +432,43 @@ export function DashboardPage() {
                   className={classes.metricCard}
                   data-overdue={upcomingDays !== null && upcomingDays < 0 ? true : undefined}
                 >
-                  <Box className={classes.metricIcon}>
-                    <IconCalendarDue size={20} stroke={1.8} />
+                  <Group className={classes.metricTop} justify="space-between" wrap="nowrap">
+                    <Text className={classes.metricLabel}>
+                      {upcomingDays !== null && upcomingDays < 0 ? 'Дата прошла' : 'Следующее'}
+                    </Text>
+                    <Box className={classes.metricIcon}>
+                      <IconCalendarDue size={20} stroke={1.8} />
+                    </Box>
+                  </Group>
+                  <Box className={classes.metricBody}>
+                    <Text className={classes.metricValue}>
+                      {upcomingSubscription
+                        ? formatChargeDate(upcomingSubscription.nextChargeDate)
+                        : '—'}
+                    </Text>
+                    <Text className={classes.metricHint} lineClamp={1}>
+                      {upcomingSubscription?.name ?? 'пока ничего'}
+                    </Text>
                   </Box>
-                  <Text className={classes.metricLabel}>
-                    {upcomingDays !== null && upcomingDays < 0 ? 'Дата прошла' : 'Следующее'}
-                  </Text>
-                  <Text className={classes.metricValue}>
-                    {upcomingSubscription
-                      ? formatChargeDate(upcomingSubscription.nextChargeDate)
-                      : '—'}
-                  </Text>
-                  <Text className={classes.metricHint} lineClamp={1}>
-                    {upcomingSubscription?.name ?? 'пока ничего'}
-                  </Text>
                 </Box>
 
                 <Box className={classes.metricCard}>
-                  <Box className={classes.metricIcon}>
-                    <IconReceipt size={20} stroke={1.8} />
+                  <Group className={classes.metricTop} justify="space-between" wrap="nowrap">
+                    <Text className={classes.metricLabel}>Активные</Text>
+                    <Box className={classes.metricIcon}>
+                      <IconReceipt size={20} stroke={1.8} />
+                    </Box>
+                  </Group>
+                  <Box className={classes.metricBody}>
+                    <Text className={classes.metricValue}>
+                      {subscriptionsLoading ? '·' : activeSubscriptions.length}
+                    </Text>
+                    <Text className={classes.metricHint}>
+                      {getSubscriptionCountLabel(activeSubscriptions.length)}
+                    </Text>
                   </Box>
-                  <Text className={classes.metricLabel}>Активные</Text>
-                  <Text className={classes.metricValue}>
-                    {subscriptionsLoading ? '·' : activeSubscriptions.length}
-                  </Text>
-                  <Text className={classes.metricHint}>подписок</Text>
                 </Box>
               </Box>
-
-              <UpcomingPaymentsPanel
-                hasError={Boolean(subscriptionsError)}
-                isLoading={subscriptionsLoading}
-                onRetry={() => void refreshSubscriptions()}
-                onSelect={openEditModal}
-                subscriptions={activeSubscriptions}
-              />
 
               <Box className={classes.subscriptionsPanel}>
                 <Group className={classes.panelHeader} justify="space-between">

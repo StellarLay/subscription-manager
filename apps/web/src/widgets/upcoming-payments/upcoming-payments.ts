@@ -5,7 +5,6 @@ export type UpcomingPaymentGroupId = 'overdue' | 'today' | 'week' | 'later';
 export interface UpcomingPaymentGroup {
   id: UpcomingPaymentGroupId;
   title: string;
-  description: string;
   subscriptions: SubscriptionResponseDto[];
 }
 
@@ -41,25 +40,21 @@ export function groupUpcomingPayments(
     {
       id: 'overdue',
       title: 'Дата прошла',
-      description: 'Проверь график подписки',
       subscriptions: [],
     },
     {
       id: 'today',
       title: 'Сегодня',
-      description: 'Стоит проверить баланс',
       subscriptions: [],
     },
     {
       id: 'week',
       title: 'Следующие 7 дней',
-      description: 'Ближайшая неделя',
       subscriptions: [],
     },
     {
       id: 'later',
       title: 'Позже',
-      description: 'Дальнейшие списания',
       subscriptions: [],
     },
   ];

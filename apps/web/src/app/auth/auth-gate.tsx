@@ -40,26 +40,32 @@ export function AuthGate({ children }: PropsWithChildren) {
   useEffect(() => {
     const webApp = window.Telegram?.WebApp;
     const updateSafeArea = () => {
+      if (!webApp) return;
       const root = document.documentElement;
       for (const side of ['top', 'right', 'bottom', 'left'] as const) {
         const inset = Math.max(
           webApp?.safeAreaInset?.[side] ?? 0,
           webApp?.contentSafeAreaInset?.[side] ?? 0,
         );
-        root.style.setProperty(`--app-safe-${side}`, `${inset}px`);
+        root.style.setProperty(
+          `--app-safe-${side}`,
+          `max(env(safe-area-inset-${side}, 0px), ${inset}px)`,
+        );
       }
+    };
+    const updateViewport = () => {
+      document.documentElement.style.setProperty(
+        '--app-viewport-height',
+        `${window.visualViewport?.height ?? window.innerHeight}px`,
+      );
     };
 
     updateSafeArea();
+    updateViewport();
     webApp?.onEvent?.('safeAreaChanged', updateSafeArea);
     webApp?.onEvent?.('contentSafeAreaChanged', updateSafeArea);
-    if (webApp?.isVersionAtLeast?.('6.1')) {
-      webApp.setHeaderColor?.('#07090d');
-      webApp.setBackgroundColor?.('#07090d');
-    }
-    if (webApp?.isVersionAtLeast?.('7.10')) {
-      webApp.setBottomBarColor?.('#07090d');
-    }
+    window.visualViewport?.addEventListener('resize', updateViewport);
+    window.addEventListener('resize', updateViewport);
     if (!started.current) {
       started.current = true;
       webApp?.ready();
@@ -70,6 +76,8 @@ export function AuthGate({ children }: PropsWithChildren) {
     return () => {
       webApp?.offEvent?.('safeAreaChanged', updateSafeArea);
       webApp?.offEvent?.('contentSafeAreaChanged', updateSafeArea);
+      window.visualViewport?.removeEventListener('resize', updateViewport);
+      window.removeEventListener('resize', updateViewport);
     };
   }, [authenticate]);
 

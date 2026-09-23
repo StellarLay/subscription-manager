@@ -23,6 +23,8 @@ import { IconAlertCircle, IconPlus, IconTag } from '@tabler/icons-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
+import { useTelegramBackButton } from '@/app/telegram/use-telegram-back-button';
+
 import classes from './create-category-modal.module.css';
 
 interface CreateCategoryModalProps {
@@ -77,6 +79,8 @@ export function CreateCategoryModal({ opened, onClose, onCreated }: CreateCatego
     reset();
     onClose();
   };
+
+  useTelegramBackButton(opened, close);
 
   const submit = handleSubmit(async (values) => {
     try {

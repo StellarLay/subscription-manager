@@ -23,6 +23,8 @@ import { IconAlertCircle, IconCreditCard, IconPlus } from '@tabler/icons-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
+import { useTelegramBackButton } from '@/app/telegram/use-telegram-back-button';
+
 import classes from './create-payment-method-modal.module.css';
 
 interface CreatePaymentMethodModalProps {
@@ -70,6 +72,8 @@ export function CreatePaymentMethodModal({
     reset();
     onClose();
   };
+
+  useTelegramBackButton(opened, close);
 
   const submit = handleSubmit(async (values) => {
     try {

@@ -129,20 +129,17 @@ export function UpcomingPaymentsPanel({
       )}
 
       {!isLoading && !hasError && populatedGroups.length > 0 && (
-        <Box className={classes.groupsGrid}>
+        <Box className={classes.groupsGrid} data-single={populatedGroups.length === 1 || undefined}>
           {populatedGroups.map((group) => (
-            <Box className={classes.groupCard} data-tone={group.id} key={group.id}>
-              <Group className={classes.groupHeading} justify="space-between">
-                <Box>
+            <Box className={classes.groupSection} data-tone={group.id} key={group.id}>
+              {populatedGroups.length > 1 && (
+                <Group className={classes.groupHeading} justify="space-between">
                   <Text className={classes.groupTitle}>{group.title}</Text>
-                  <Text className={classes.groupDescription}>{group.description}</Text>
-                </Box>
-                <Badge className={classes.groupCount} radius="xl" variant="transparent">
-                  {group.subscriptions.length}
-                </Badge>
-              </Group>
+                  <Text className={classes.groupCount}>{group.subscriptions.length}</Text>
+                </Group>
+              )}
 
-              <Stack gap={7}>
+              <Stack className={classes.paymentsList} gap={7}>
                 {group.subscriptions.map((subscription) => (
                   <Box className={classes.paymentRow} key={subscription.id}>
                     <button

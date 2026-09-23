@@ -28,6 +28,17 @@ describe('parseUserDate', () => {
     expect(parseUserDate('26.10.2025', today)).toEqual({ date: null, mentioned: true });
   });
 
+  it('can read a past purchase date without accepting it as a future charge', () => {
+    expect(parseUserDate('купил 20.09.26', '2026-09-23', true)).toEqual({
+      date: '2026-09-20',
+      mentioned: true,
+    });
+    expect(parseUserDate('купил 20.09.26', '2026-09-23')).toEqual({
+      date: null,
+      mentioned: true,
+    });
+  });
+
   it('does not invent a date when none is present', () => {
     expect(parseUserDate('Добавь Netflix за 799 ₽', today)).toEqual({
       date: null,

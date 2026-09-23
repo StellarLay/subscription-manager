@@ -8,6 +8,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { z } from 'zod';
 import {
+  calculateNextChargeDate,
+  calculateUpcomingChargeDate,
   DEFAULT_TIMEZONE,
   dateTimeInTimeZoneToUtc,
   formatDateKeyInTimeZone,
@@ -29,6 +31,7 @@ const draftSchema = z.object({
   billingPeriod: z.enum(['WEEK', 'MONTH', 'QUARTER', 'YEAR']).nullable(),
   nextChargeDate: z.string().nullable(),
   paymentMethodId: z.string().uuid().nullable(),
+  purchaseDate: z.string().nullable().default(null),
 });
 type DraftPayload = z.infer<typeof draftSchema>;
 
@@ -39,6 +42,7 @@ const EMPTY_DRAFT: DraftPayload = {
   billingPeriod: null,
   nextChargeDate: null,
   paymentMethodId: null,
+  purchaseDate: null,
 };
 
 const DAILY_MESSAGE_LIMIT = 40;
@@ -49,18 +53,53 @@ function validDate(value: string): boolean {
 }
 
 function periodFromMessage(message: string): DraftPayload['billingPeriod'] {
-  if (/недел|еженедел/iu.test(message)) return 'WEEK';
+  if (/недел|еженедел|(?:^|[\s/])нед\.?($|[\s,;!?])/iu.test(message)) return 'WEEK';
   if (/квартал|каждые\s+3\s+месяц/iu.test(message)) return 'QUARTER';
-  if (/месяц|ежемесяч/iu.test(message)) return 'MONTH';
+  if (/месяц|ежемесяч|(?:^|[\s/])мес\.?($|[\s,;!?])/iu.test(message)) return 'MONTH';
   if (/год(?:а|овой|овые)?|ежегод/iu.test(message)) return 'YEAR';
   return null;
 }
 
 function currencyFromMessage(message: string): DraftPayload['currency'] {
-  if (/₽|руб|\bRUB\b/iu.test(message)) return 'RUB';
+  if (/₽|руб|\bRUB\b|\d[\s\u00a0]*р\.?(?=\/|[\s,;!?]|$)/iu.test(message)) return 'RUB';
   if (/\$|доллар|\bUSD\b/iu.test(message)) return 'USD';
   if (/€|евро|\bEUR\b/iu.test(message)) return 'EUR';
   return null;
+}
+
+function nameCorrection(message: string): string | null {
+  const match = message.trim().match(/^(?:название|назови|имя подписки)\s*(?::|—|-)\s*(.+)$/iu);
+  return match?.[1]?.trim() || null;
+}
+
+function nameBeforePrice(message: string, modelName: string | null | undefined): string | null {
+  const match = message
+    .trim()
+    .match(
+      /^(?:(?:добавь|запиши|оформи|подключил|купил|подписка)\s+)*(.+?)\s+\d[\d\s]*(?:[.,]\d{1,2})?\s*(?:₽|р\.?|руб(?:лей)?|\$|€|usd|eur)(?=\/|[\s,;.!?]|$)/iu,
+    );
+  const candidate = match?.[1]?.trim() ?? null;
+  if (!candidate) return null;
+  if (/^(?:я|на|за|в|по|моя)\s/iu.test(candidate)) return null;
+  if (!modelName) return candidate.split(/\s+/u).length >= 2 ? candidate : null;
+  if (candidate.length <= modelName.length) return null;
+  return candidate.toLowerCase().includes(modelName.trim().toLowerCase()) ? candidate : null;
+}
+
+function amountBeforeCurrency(message: string): number | null {
+  const match = message.match(
+    /(?:^|[^\d])(\d[\d\s]*(?:[.,]\d{1,2})?)\s*(?:₽|р\.?|руб(?:лей)?|\$|€|usd|eur)(?=\/|[\s,;.!?]|$)/iu,
+  );
+  const amount = match?.[1] ? Number(match[1].replace(/\s/gu, '').replace(',', '.')) : null;
+  return amount && Number.isFinite(amount) && amount <= 999999999 ? amount : null;
+}
+
+function purchaseDateFromMessage(message: string, today: string): string | null {
+  if (!/(?:купил|купила|оформил|оформила|подключил|подключила)(?=$|[\s,;.!?])/iu.test(message))
+    return null;
+  if (/следующ\w*\s+списан|списан\w*\s+(?:будет|ожида)/iu.test(message)) return null;
+  const parsed = parseUserDate(message, today, true);
+  return parsed.mentioned ? parsed.date : null;
 }
 
 function formatAmount(amount: number, currency: string): string {
@@ -201,14 +240,16 @@ export class AssistantService {
       label: method.lastFour ? `${method.name} • ${method.lastFour}` : method.name,
     }));
     const parsed: ExtractedIntent =
-      previous && userDate.mentioned && isStandaloneDate(text)
-        ? { intent: 'create' }
-        : await this.model.extract({
-            message: text.trim(),
-            today,
-            pending: previous,
-            paymentMethods: methods,
-          });
+      previous && nameCorrection(text)
+        ? { intent: 'create', name: nameCorrection(text) }
+        : previous && userDate.mentioned && isStandaloneDate(text)
+          ? { intent: 'create' }
+          : await this.model.extract({
+              message: text.trim(),
+              today,
+              pending: previous,
+              paymentMethods: methods,
+            });
 
     if (parsed.intent === 'list') {
       if (existing) await this.prisma.assistantDraft.deleteMany({ where: { userId } });
@@ -234,8 +275,10 @@ export class AssistantService {
       await this.prisma.assistantDraft.deleteMany({ where: { userId } });
       return { kind: 'message', message: 'Черновик отменён.', draft: null };
     }
+    const correctedName = previous ? nameCorrection(text) : null;
     const isDraftDetail = Boolean(
-      previous && (userDate.mentioned || periodFromMessage(text) || currencyFromMessage(text)),
+      previous &&
+      (userDate.mentioned || periodFromMessage(text) || currencyFromMessage(text) || correctedName),
     );
     if (parsed.intent !== 'create' && !isDraftDetail) {
       return {
@@ -246,8 +289,15 @@ export class AssistantService {
       };
     }
 
+    const parsedNameMentioned = Boolean(
+      parsed.name && text.toLowerCase().includes(parsed.name.toLowerCase()),
+    );
     const continuing =
-      previous?.name && parsed.name && previous.name.toLowerCase() !== parsed.name.toLowerCase()
+      previous?.name &&
+      parsed.name &&
+      parsedNameMentioned &&
+      !correctedName &&
+      previous.name.toLowerCase() !== parsed.name.toLowerCase()
         ? null
         : previous;
     const payload = this.mergeDraft(continuing, parsed, methods, today, text.trim());
@@ -264,7 +314,7 @@ export class AssistantService {
     const payment = `\nСпособ оплаты: ${draft.paymentMethodLabel ?? 'не указан'}`;
     return {
       kind: 'draft',
-      message: `Проверим перед созданием:\n${payload.name} — ${formatAmount(payload.amount!, payload.currency!)} за ${periodLabels[payload.billingPeriod!]}\nСледующее списание: ${payload.nextChargeDate}${payment}`,
+      message: `Проверим перед созданием:\n${payload.name} — ${formatAmount(payload.amount!, payload.currency!)} за ${periodLabels[payload.billingPeriod!]}\nСледующее списание: ${payload.nextChargeDate}${payment}\nЕсли что-то не так, напиши, например: «Название: Бусти Рубильник» или «Списание 25 октября».`,
       draft,
     };
   }
@@ -327,16 +377,25 @@ export class AssistantService {
     message: string,
   ): DraftPayload {
     const next = { ...(current ?? EMPTY_DRAFT) };
-    for (const key of ['name', 'amount'] as const) {
-      const value = parsed[key];
-      if (value !== null && value !== undefined) (next as Record<string, unknown>)[key] = value;
+    if (parsed.name && (!current || message.toLowerCase().includes(parsed.name.toLowerCase()))) {
+      next.name = parsed.name;
     }
+    if (parsed.amount !== null && parsed.amount !== undefined) next.amount = parsed.amount;
+    const correctedName = current ? nameCorrection(message) : null;
+    if (correctedName) next.name = correctedName;
+    if (!current) next.name = nameBeforePrice(message, parsed.name) ?? next.name;
+    if (!next.amount) next.amount = amountBeforeCurrency(message);
+    const purchaseDate = purchaseDateFromMessage(message, today);
+    if (purchaseDate) next.purchaseDate = purchaseDate;
     const userDate = parseUserDate(message, today);
-    if (userDate.mentioned) {
+    if (userDate.mentioned && !purchaseDate) {
       next.nextChargeDate = userDate.date;
-    } else if (parsed.chargeDay) {
+      next.purchaseDate = null;
+    } else if (parsed.chargeDay && !purchaseDate) {
       next.nextChargeDate = nextDateForDay(parsed.chargeDay, today);
+      next.purchaseDate = null;
     } else if (
+      !purchaseDate &&
       parsed.nextChargeDate &&
       /дата|списан|оплат|следующ|будет|числ|через|сегодня|завтра/iu.test(message)
     ) {
@@ -346,6 +405,22 @@ export class AssistantService {
     if (mentionedCurrency) next.currency = mentionedCurrency;
     const mentionedPeriod = periodFromMessage(message);
     if (mentionedPeriod) next.billingPeriod = mentionedPeriod;
+    if (
+      next.purchaseDate &&
+      next.billingPeriod &&
+      (purchaseDate || mentionedPeriod || !next.nextChargeDate)
+    ) {
+      const firstRenewal = calculateNextChargeDate({
+        currentDate: next.purchaseDate,
+        billingPeriod: next.billingPeriod,
+      });
+      next.nextChargeDate = calculateUpcomingChargeDate({
+        currentDate: firstRenewal,
+        asOfDate: today,
+        billingPeriod: next.billingPeriod,
+        anchorDay: Number(next.purchaseDate.slice(-2)),
+      });
+    }
     const selectedMethod = methods.find((method) => method.id === parsed.paymentMethodId);
     const explicitMethodMention = selectedMethod?.label
       .split(' • ')

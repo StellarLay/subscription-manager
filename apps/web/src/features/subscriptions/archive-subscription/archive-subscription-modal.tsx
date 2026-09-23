@@ -9,6 +9,8 @@ import { notifications } from '@mantine/notifications';
 import { IconAlertCircle, IconArchive } from '@tabler/icons-react';
 import { useState } from 'react';
 
+import { useTelegramBackButton } from '@/app/telegram/use-telegram-back-button';
+
 import classes from './archive-subscription-modal.module.css';
 
 interface ArchiveSubscriptionModalProps {
@@ -35,6 +37,8 @@ export function ArchiveSubscriptionModal({
     setError(null);
     onClose();
   };
+
+  useTelegramBackButton(opened, close);
 
   const archive = async () => {
     if (!subscription) return;

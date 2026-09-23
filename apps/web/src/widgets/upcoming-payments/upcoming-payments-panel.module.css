@@ -4,9 +4,9 @@
   border: 1px solid var(--app-border);
   border-radius: 28px;
   background:
-    radial-gradient(circle at 92% 0%, rgba(91, 216, 255, 0.08), transparent 27%),
-    rgba(12, 15, 21, 0.88);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+    radial-gradient(circle at 92% 0%, rgba(91, 216, 255, 0.055), transparent 27%),
+    rgba(15, 19, 26, 0.94);
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(16px);
 }
 
@@ -36,30 +36,29 @@
   font-size: 0.78rem;
 }
 
-.counter,
-.groupCount {
+.counter {
   min-width: 28px;
-  color: #899087;
+  color: #aab5a8;
   border: 1px solid var(--app-border);
   background: rgba(255, 255, 255, 0.035);
 }
 
 .calendarIcon {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  color: #8deaff;
-  border: 1px solid rgba(91, 216, 255, 0.15);
-  border-radius: 14px;
-  background: rgba(91, 216, 255, 0.055);
+  color: #9bb9c1;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
   justify-self: end;
 }
 
 .groupsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 22px 18px;
   padding-top: 16px;
 }
 
@@ -68,45 +67,61 @@
   opacity: 0.28;
 }
 
-.groupCard {
+.groupSection {
   min-width: 0;
-  padding: 15px;
-  border: 1px solid var(--app-border);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.018);
 }
 
-.groupCard[data-tone='overdue'] {
-  border-color: rgba(255, 107, 107, 0.18);
-  background: rgba(255, 82, 82, 0.025);
+.groupsGrid[data-single='true'] .groupSection {
+  grid-column: 1 / -1;
 }
 
-.groupCard[data-tone='today'] {
-  border-color: rgba(255, 196, 102, 0.17);
-}
-
-.groupCard[data-tone='week'] {
-  border-color: rgba(115, 255, 91, 0.14);
+.groupsGrid[data-single='true'] .paymentsList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .groupHeading {
-  margin-bottom: 13px;
+  margin-bottom: 10px;
 }
 
 .groupTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #dfe3dc;
   font-size: 0.84rem;
   font-weight: 670;
 }
 
-.groupDescription {
-  margin-top: 2px;
-  color: #646b63;
-  font-size: 0.68rem;
+.groupTitle::before {
+  width: 6px;
+  height: 6px;
+  content: '';
+  border-radius: 50%;
+  background: #84938a;
 }
 
-.groupCard[data-tone='overdue'] .groupTitle {
+.groupCount {
+  color: #929c91;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.groupSection[data-tone='overdue'] .groupTitle {
   color: #ff8c83;
+}
+
+.groupSection[data-tone='overdue'] .groupTitle::before {
+  background: #ff8c83;
+}
+
+.groupSection[data-tone='today'] .groupTitle::before {
+  background: #ffc466;
+}
+
+.groupSection[data-tone='week'] .groupTitle::before {
+  background: var(--app-signal);
 }
 
 .paymentRow {
@@ -125,9 +140,9 @@
   padding: 9px 10px;
   color: inherit;
   text-align: left;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.045);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.027);
+  background: rgba(255, 255, 255, 0.032);
   cursor: pointer;
   transition:
     border-color 150ms ease,
@@ -169,7 +184,7 @@
 .paymentInfo :global(.mantine-Text-root:first-child) {
   overflow: hidden;
   color: var(--app-text);
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 620;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -178,19 +193,19 @@
 .paymentInfo :global(.mantine-Text-root:last-child) {
   margin-top: 3px;
   overflow: hidden;
-  color: #686f67;
-  font-size: 0.65rem;
+  color: #949e93;
+  font-size: 0.72rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .paymentDate {
-  color: #929990;
-  font-size: 0.7rem;
+  color: #abb4a9;
+  font-size: 0.73rem;
   white-space: nowrap;
 }
 
-.groupCard[data-tone='overdue'] .paymentDate {
+.groupSection[data-tone='overdue'] .paymentDate {
   color: #ff8279;
 }
 
@@ -204,7 +219,7 @@
 }
 
 .chevron {
-  color: #535a52;
+  color: #7f897d;
 }
 
 .emptyState {
@@ -243,6 +258,10 @@
   .groupsGrid {
     grid-template-columns: 1fr;
   }
+
+  .groupsGrid[data-single='true'] .paymentsList {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 48em) {
@@ -258,19 +277,14 @@
   }
 
   .calendarIcon {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     flex: 0 0 auto;
   }
 
   .groupsGrid {
-    gap: 10px;
+    gap: 18px;
     padding-top: 12px;
-  }
-
-  .groupCard {
-    padding: 10px;
-    border-radius: 17px;
   }
 
   .paymentMain {
@@ -312,4 +326,40 @@
   .chevron {
     display: none;
   }
+}
+
+:global(html[data-app-theme='light']) .panel {
+  background:
+    radial-gradient(circle at 92% 0%, rgba(91, 180, 200, 0.075), transparent 27%),
+    rgba(255, 255, 255, 0.95);
+}
+
+:global(html[data-app-theme='light']) .counter,
+:global(html[data-app-theme='light']) .calendarIcon {
+  color: #55705e;
+  background: rgba(30, 78, 37, 0.04);
+}
+
+:global(html[data-app-theme='light']) .groupTitle {
+  color: #29432f;
+}
+
+:global(html[data-app-theme='light']) .groupCount,
+:global(html[data-app-theme='light']) .paymentInfo :global(.mantine-Text-root:last-child),
+:global(html[data-app-theme='light']) .paymentDate,
+:global(html[data-app-theme='light']) .chevron {
+  color: #627465;
+}
+
+:global(html[data-app-theme='light']) .groupSection[data-tone='overdue'] .groupTitle {
+  color: #a83e37;
+}
+
+:global(html[data-app-theme='light']) .paymentMain {
+  border-color: var(--app-border);
+  background: #fff;
+}
+
+:global(html[data-app-theme='light']) .paymentMain:hover {
+  background: #f2f8f0;
 }

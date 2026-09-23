@@ -1,11 +1,24 @@
 interface TelegramWebApp {
   initData: string;
+  colorScheme?: 'light' | 'dark';
   expand: () => void;
   ready: () => void;
   safeAreaInset?: TelegramSafeAreaInset;
   contentSafeAreaInset?: TelegramSafeAreaInset;
-  onEvent?: (event: 'safeAreaChanged' | 'contentSafeAreaChanged', callback: () => void) => void;
-  offEvent?: (event: 'safeAreaChanged' | 'contentSafeAreaChanged', callback: () => void) => void;
+  BackButton?: {
+    onClick: (callback: () => void) => void;
+    offClick: (callback: () => void) => void;
+    show: () => void;
+    hide: () => void;
+  };
+  onEvent?: (
+    event: 'safeAreaChanged' | 'contentSafeAreaChanged' | 'themeChanged',
+    callback: () => void,
+  ) => void;
+  offEvent?: (
+    event: 'safeAreaChanged' | 'contentSafeAreaChanged' | 'themeChanged',
+    callback: () => void,
+  ) => void;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
   setBottomBarColor?: (color: string) => void;

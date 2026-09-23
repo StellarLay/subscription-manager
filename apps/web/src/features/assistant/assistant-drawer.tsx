@@ -16,6 +16,8 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { useTelegramBackButton } from '@/app/telegram/use-telegram-back-button';
+
 import classes from './assistant-drawer.module.css';
 
 interface AssistantDrawerProps {
@@ -66,6 +68,7 @@ function formatDate(date: string): string {
 }
 
 export function AssistantDrawer({ opened, onClose, onCreated }: AssistantDrawerProps) {
+  useTelegramBackButton(opened, onClose);
   const [input, setInput] = useState('');
   const [lines, setLines] = useState<ChatLine[]>([]);
   const [draft, setDraft] = useState<AssistantDraftDto | null>(null);
@@ -140,6 +143,11 @@ export function AssistantDrawer({ opened, onClose, onCreated }: AssistantDrawerP
 
   const useExample = () => {
     setInput(EXAMPLE);
+    inputRef.current?.focus();
+  };
+
+  const editDraft = (value: string) => {
+    setInput(value);
     inputRef.current?.focus();
   };
 
@@ -287,6 +295,21 @@ export function AssistantDrawer({ opened, onClose, onCreated }: AssistantDrawerP
                     <strong>{draft.paymentMethodLabel ?? 'Не указан'}</strong>
                   </div>
                 </div>
+                <div aria-label="Исправить черновик" className={classes.editSuggestions}>
+                  <button
+                    disabled={busy}
+                    onClick={() => editDraft(`Название: ${draft.name}`)}
+                    type="button"
+                  >
+                    Название
+                  </button>
+                  <button disabled={busy} onClick={() => editDraft('Цена: ')} type="button">
+                    Цена
+                  </button>
+                  <button disabled={busy} onClick={() => editDraft('Списание: ')} type="button">
+                    Дата
+                  </button>
+                </div>
                 <div className={classes.draftActions}>
                   <button
                     className={classes.confirmButton}
@@ -321,6 +344,23 @@ export function AssistantDrawer({ opened, onClose, onCreated }: AssistantDrawerP
           </div>
         </ScrollArea>
         <div className={classes.composerArea}>
+          {lines.length > 0 && !draft && (
+            <div aria-label="Быстрые запросы" className={classes.quickActions}>
+              <button
+                disabled={busy}
+                onClick={() => void send('Покажи мои подписки')}
+                type="button"
+              >
+                Мои подписки
+              </button>
+              <button disabled={busy} onClick={useExample} type="button">
+                Добавить
+              </button>
+              <button disabled={busy} onClick={() => void send('Что умеешь?')} type="button">
+                Что умеешь?
+              </button>
+            </div>
+          )}
           <div className={classes.composer}>
             <Textarea
               aria-label="Сообщение помощнику"

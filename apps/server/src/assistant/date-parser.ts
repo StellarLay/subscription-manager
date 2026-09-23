@@ -67,13 +67,13 @@ function monthFromWord(word: string): number | null {
   return index < 0 ? null : index + 1;
 }
 
-export function parseUserDate(message: string, today: string): ParsedUserDate {
+export function parseUserDate(message: string, today: string, allowPast = false): ParsedUserDate {
   if (!validDate(today)) return { date: null, mentioned: false };
   const text = message.trim().toLowerCase();
   const iso = text.match(/(?:^|\D)(\d{4})[-./](\d{1,2})[-./](\d{1,2})(?=\D|$)/u);
   if (iso) {
     const date = dateKey(Number(iso[1]), Number(iso[2]), Number(iso[3]));
-    return { date: date && date >= today ? date : null, mentioned: true };
+    return { date: date && (allowPast || date >= today) ? date : null, mentioned: true };
   }
 
   const numeric = text.match(/(?:^|\D)(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2}|\d{4}))?(?=\D|$)/u);
@@ -87,7 +87,7 @@ export function parseUserDate(message: string, today: string): ParsedUserDate {
         : Number(rawYear)
       : null;
     const date = year ? dateKey(year, month, day) : upcomingDate(day, month, today);
-    return { date: date && date >= today ? date : null, mentioned: true };
+    return { date: date && (allowPast || date >= today) ? date : null, mentioned: true };
   }
 
   const namedMonth = text.match(
@@ -100,7 +100,7 @@ export function parseUserDate(message: string, today: string): ParsedUserDate {
       const date = namedMonth[3]
         ? dateKey(Number(namedMonth[3]), month, day)
         : upcomingDate(day, month, today);
-      return { date: date && date >= today ? date : null, mentioned: true };
+      return { date: date && (allowPast || date >= today) ? date : null, mentioned: true };
     }
   }
 
