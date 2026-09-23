@@ -15,6 +15,38 @@ const enabledLimit = {
 } as unknown as ConfigService<Environment, true>;
 
 describe('AssistantService', () => {
+  it.each(['Покажи мои подписки', 'Мои подписки', 'Список подписок', 'Какие у меня подписки?'])(
+    'lists subscriptions for %s without asking the model or spending AI quota',
+    async (message) => {
+      const queryRaw = vi.fn();
+      const extract = vi.fn();
+      const findAllForUser = vi.fn().mockResolvedValue([
+        {
+          name: 'Netflix',
+          amount: '799.00',
+          currency: 'RUB',
+          nextChargeDate: '2026-10-15',
+          status: 'ACTIVE',
+        },
+      ]);
+      const service = new AssistantService(
+        {
+          $queryRaw: queryRaw,
+          assistantDraft: { deleteMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        } as unknown as PrismaService,
+        { findAllForUser } as unknown as SubscriptionsService,
+        { available: true, extract } as unknown as AiModelClient,
+        enabledLimit,
+      );
+
+      const reply = await service.message(userId, message);
+      expect(reply.message).toContain('Netflix');
+      expect(findAllForUser).toHaveBeenCalledWith(userId);
+      expect(extract).not.toHaveBeenCalled();
+      expect(queryRaw).not.toHaveBeenCalled();
+    },
+  );
+
   it.each([
     'Что умеешь?',
     'что ты можешь',

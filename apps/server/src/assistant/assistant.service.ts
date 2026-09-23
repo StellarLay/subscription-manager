@@ -134,6 +134,18 @@ function asksAboutCapabilities(message: string): boolean {
   );
 }
 
+function asksToListSubscriptions(message: string): boolean {
+  const normalized = message
+    .trim()
+    .toLowerCase()
+    .replace(/[?!.,]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+  return /^(?:покажи(?: мне)?(?: все| мои| активные)? подписки|показать(?: мои)? подписки|выведи(?: мои| все)? подписки|перечисли(?: мои)? подписки|мои подписки|список(?: моих)? подписок|какие(?: у меня)? подписки)$/iu.test(
+    normalized,
+  );
+}
+
 @Injectable()
 export class AssistantService {
   constructor(
@@ -160,6 +172,7 @@ export class AssistantService {
 
   async message(userId: string, text: string): Promise<AssistantReplyDto> {
     if (!this.model.available) throw new ServiceUnavailableException('Помощник пока не подключён');
+    if (asksToListSubscriptions(text)) return this.listSubscriptions(userId);
     if (asksAboutCapabilities(text)) {
       const saved = await this.prisma.assistantDraft.findUnique({ where: { userId } });
       const payload =
@@ -252,23 +265,7 @@ export class AssistantService {
             });
 
     if (parsed.intent === 'list') {
-      if (existing) await this.prisma.assistantDraft.deleteMany({ where: { userId } });
-      const subscriptions = await this.subscriptions.findAllForUser(userId);
-      const active = subscriptions.filter((subscription) => subscription.status === 'ACTIVE');
-      if (!active.length)
-        return { kind: 'message', message: 'Активных подписок пока нет.', draft: null };
-      const lines = active
-        .slice(0, 15)
-        .map(
-          (subscription) =>
-            `• ${subscription.name} — ${formatAmount(Number(subscription.amount), subscription.currency)}, следующее списание ${subscription.nextChargeDate}`,
-        );
-      const suffix = active.length > 15 ? `\nИ ещё ${active.length - 15} в приложении.` : '';
-      return {
-        kind: 'message',
-        message: `Твои активные подписки:\n${lines.join('\n')}${suffix}`,
-        draft: null,
-      };
+      return this.listSubscriptions(userId, Boolean(existing));
     }
 
     if (parsed.intent === 'cancel') {
@@ -367,6 +364,26 @@ export class AssistantService {
   async cancel(userId: string, draftId: string): Promise<AssistantReplyDto> {
     await this.prisma.assistantDraft.deleteMany({ where: { id: draftId, userId } });
     return { kind: 'message', message: 'Черновик отменён.', draft: null };
+  }
+
+  private async listSubscriptions(userId: string, hasDraft = true): Promise<AssistantReplyDto> {
+    if (hasDraft) await this.prisma.assistantDraft.deleteMany({ where: { userId } });
+    const subscriptions = await this.subscriptions.findAllForUser(userId);
+    const active = subscriptions.filter((subscription) => subscription.status === 'ACTIVE');
+    if (!active.length)
+      return { kind: 'message', message: 'Активных подписок пока нет.', draft: null };
+    const lines = active
+      .slice(0, 15)
+      .map(
+        (subscription) =>
+          `• ${subscription.name} — ${formatAmount(Number(subscription.amount), subscription.currency)}, следующее списание ${subscription.nextChargeDate}`,
+      );
+    const suffix = active.length > 15 ? `\nИ ещё ${active.length - 15} в приложении.` : '';
+    return {
+      kind: 'message',
+      message: `Твои активные подписки:\n${lines.join('\n')}${suffix}`,
+      draft: null,
+    };
   }
 
   private mergeDraft(
